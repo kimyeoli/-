@@ -352,7 +352,6 @@ const LS=(()=>{const m={};let ok=true;
     setItem:(k,v)=>{try{if(ok){window.localStorage.setItem(k,v);delete m[k];return}}catch{}m[k]=String(v)},
     removeItem:k=>{try{if(ok)window.localStorage.removeItem(k)}catch{}delete m[k]}}})();
 
-const REDEEM={'112233':5000};
 const COLORS=['#2748c7','#0f9d8a','#e07a35','#d1456b','#7a5af8','#2f3a4d','#ffd84d','#9bd3ae','#f4a6b7','#bfe0ff'];
 const INK='#17233a',DEF={body:'b0',skin:'s0',pat:'p0',face:'e0',acc:'a0',up_hp:'uh0',up_coin:'uc0',up_spd:'us0',full:'f0',sound:'snd_mem'};
 const SLOTS=[['body','종류'],['skin','몸 색'],['pat','무늬'],['face','눈'],['acc','꾸미기'],['full','전체 스킨'],['active','액티브'],['sound','타자 소리']];
@@ -466,7 +465,7 @@ const LocalStore=(()=>{
     me(){const d=load(),k=LS.getItem(S);return d.users[k]?{...d.users[k],k}:null},
     logout(){LS.removeItem(S)},
     async deleteAccount(){const d=load(),k=LS.getItem(S);if(!k||!d.users[k])throw Error('로그인이 필요해요.');delete d.users[k];d.scores=d.scores.filter(s=>s.u!==k);save(d);LS.removeItem(S)},
-    async redeem(code){const d=load(),k=LS.getItem(S),u=d.users[k];if(!u)throw Error('로그인이 필요해요.');const p=REDEEM[code.trim()];if(!p)throw Error('맞지 않는 코드예요.');u.pts=(u.pts||0)+p;save(d);return p},
+    async redeem(){throw Error('포인트 코드는 서버에서만 쓸 수 있어요.')},
     async patch(o){const d=load(),u=cur(d);if(!u)return;
       if(o.color&&/^#[0-9a-f]{6}$/i.test(o.color))u.color=o.color;
       if('avatar' in o)u.avatar=o.avatar||null;
@@ -926,10 +925,11 @@ let TD=null,tdRaf=0,tdLast=0;
 const tdUpCost=t=>Math.round(TD_T[t.type].cost*.8*t.lvl*(TD&&TD.up?TD.up.discount:1));
 function tdStats(t){const s=TD_T[t.type],m=[1,1.8,3,4.5,6.5][t.lvl-1]||6.5,r=[1,.85,.7,.6,.5][t.lvl-1]||.5;
   return{dmg:Math.round(s.dmg*m*(TD&&TD.up?TD.up.dmg:1)*10)/10,rate:s.rate*r*(TD&&TD.up?TD.up.rate:1),range:s.range+([0,2,4,6,8][t.lvl-1]||8)+(TD&&TD.up?TD.up.range:0),splash:s.splash,pierce:s.pierce,slow:s.slow}}
-const TD_AUGMENTS=[{id:'dmg',icon:'⚔️',name:'강력한 무기',desc:'타워 공격력 +20%'},{id:'range',icon:'🔭',name:'망원 렌즈',desc:'타워 사거리 +2'},{id:'rate',icon:'⚡',name:'고속 장전',desc:'타워 공속 +15%'},{id:'discount',icon:'🏷️',name:'건축가',desc:'설치/업글 비용 -15%'},{id:'bounty',icon:'🪙',name:'현상금',desc:'처치 골드 +2'},{id:'gold',icon:'💰',name:'대부호',desc:'즉시 150 골드 획득'},{id:'heal',icon:'❤️',name:'수리공',desc:'기지 체력 +5 회복'},{id:'crit',icon:'🎯',name:'정밀 사격',desc:'타워 공격 15% 확률로 2배 피해'},{id:'splash',icon:'💥',name:'폭발 반경',desc:'대포탑 폭발 범위 +2'},{id:'pierce',icon:'🔱',name:'관통 강화',desc:'레이저탑 관통 대상 +1'},{id:'slowDur',icon:'🧊',name:'빙결 연장',desc:'얼음 둔화 지속 +1초'},{id:'guard',icon:'🛡️',name:'기지 방벽',desc:'적이 기지에 닿을 때 피해 -1'},{id:'interest',icon:'🏦',name:'복리',desc:'웨이브 클리어 보상 +10% 골드'},{id:'word',icon:'✏️',name:'타자 장인',desc:'낱말 하나당 골드 +2'}];
+const TD_AUGMENTS=[{id:'dmg',icon:'⚔️',name:'강력한 무기',desc:'타워 공격력 +20%'},{id:'range',icon:'🔭',name:'망원 렌즈',desc:'타워 사거리 +2'},{id:'rate',icon:'⚡',name:'고속 장전',desc:'타워 공속 +15%'},{id:'discount',icon:'🏷️',name:'건축가',desc:'설치/업글 비용 -15%'},{id:'chain',icon:'🔗',name:'연쇄 공격',desc:'탄이 맞으면 20% 확률로 근처 적에게 절반 피해'},{id:'skill',icon:'🌟',name:'스킬 위력',desc:'액티브 스킬 효과 강화 (회복 +1, 얼음 +1초, 번개 +10%)'},{id:'refund',icon:'💰',name:'환급 장인',desc:'타워 판매 환급 +20%'},{id:'regen',icon:'🌱',name:'자가 수리',desc:'웨이브 클리어마다 기지 체력 +1'},{id:'gold',icon:'💰',name:'대부호',desc:'즉시 150 골드 획득'},{id:'heal',icon:'❤️',name:'수리공',desc:'기지 체력 +5 회복'},{id:'crit',icon:'🎯',name:'정밀 사격',desc:'타워 공격 15% 확률로 2배 피해'},{id:'splash',icon:'💥',name:'폭발 반경',desc:'대포탑 폭발 범위 +2'},{id:'pierce',icon:'🔱',name:'관통 강화',desc:'레이저탑 관통 대상 +1'},{id:'slowDur',icon:'🧊',name:'빙결 연장',desc:'얼음 둔화 지속 +1초'},{id:'guard',icon:'🛡️',name:'기지 방벽',desc:'적이 기지에 닿을 때 피해 -1'},{id:'interest',icon:'🏦',name:'복리',desc:'웨이브 클리어 보상 +10% 골드'},{id:'word',icon:'✏️',name:'타자 장인',desc:'낱말 하나당 골드 +2'}];
 function tdRenderAugmentUI(){const cards=shuffle(TD_AUGMENTS.slice()).slice(0,3);let layer=document.getElementById('tdUpgradeScreen');if(!layer){layer=document.createElement('div');layer.className='upgrade-screen';layer.id='tdUpgradeScreen';$('.td-wrap').appendChild(layer)}layer.innerHTML=`<div class="upgrade-panel"><h2>증강 선택</h2><p>3웨이브마다 주어지는 특수 능력 (1개만 선택 가능)</p><div class="upgrade-cards">${cards.map(c=>`<button class="upgrade-card" data-a="td-aug" data-v="${c.id}"><span class="emoji">${c.icon}</span><b>${c.name}</b><span>${c.desc}</span></button>`).join('')}</div><div style="margin-top:16px"><button class="btn" data-a="td-reroll" ${TD.reroll<=0?'disabled':''}>새로고침 (남은 횟수: ${TD.reroll})</button></div></div>`;}
 function tdShowUpgradeShop(){if(!TD||TD.shopOpen)return;TD.shopOpen=true;TD.shopShown=TD.wave-1;TD.reroll=1;$('#tdi')?.blur();tdRenderAugmentUI();}
-function tdBuyAugment(id){if(!TD||!TD.shopOpen)return;if(id==='dmg')TD.up.dmg*=1.2;if(id==='range')TD.up.range+=2;if(id==='rate')TD.up.rate*=0.85;if(id==='discount')TD.up.discount*=0.85;if(id==='bounty')TD.up.bounty+=2;if(id==='gold')TD.gold+=150;if(id==='heal')TD.life+=5;if(id==='crit')TD.up.crit+=.15;if(id==='splash')TD.up.splash+=2;if(id==='pierce')TD.up.pierce+=1;if(id==='slowDur')TD.up.slowDur+=1;if(id==='guard')TD.up.guard+=1;if(id==='interest')TD.up.interest+=.1;if(id==='word')TD.up.word+=2;tdCloseAugmentShop();}
+function tdRefund(t){return Math.floor(t.spent*(.5+.2*TD.up.refund))}
+function tdBuyAugment(id){if(!TD||!TD.shopOpen)return;if(id==='dmg')TD.up.dmg*=1.2;if(id==='range')TD.up.range+=2;if(id==='rate')TD.up.rate*=0.85;if(id==='discount')TD.up.discount*=0.85;if(id==='chain')TD.up.chain+=.2;if(id==='skill')TD.up.skill+=1;if(id==='refund')TD.up.refund+=1;if(id==='regen')TD.up.regen+=1;if(id==='gold')TD.gold+=150;if(id==='heal')TD.life+=5;if(id==='crit')TD.up.crit+=.15;if(id==='splash')TD.up.splash+=2;if(id==='pierce')TD.up.pierce+=1;if(id==='slowDur')TD.up.slowDur+=1;if(id==='guard')TD.up.guard+=1;if(id==='interest')TD.up.interest+=.1;if(id==='word')TD.up.word+=2;tdCloseAugmentShop();}
 function tdRerollAugment(){if(!TD||!TD.shopOpen||TD.reroll<=0)return;TD.reroll--;tdRenderAugmentUI();}
 function tdCloseAugmentShop(){if(!TD)return;$('#tdUpgradeScreen')?.remove();TD.shopOpen=false;$('#tdi')?.focus();}
 function tdQueue(w){const n=4+w*2,q=[];for(let i=0;i<n;i++)q.push({boss:false,hp:7*(10+w*2),sp:(3+w*.2+Math.random())*.8});
@@ -941,7 +941,7 @@ function tdStartWave(){TD.phase='wave';TD.queue=tdQueue(TD.wave);TD.st=.6;TD.rea
   let msg=TD.wave%5===0?`⚠️ 보스 출현! 웨이브 ${TD.wave} ⚠️`:`웨이브 ${TD.wave} 시작!`;
   if(TD.wave%5!==0&&nu.length)msg+=` 새 타워: ${nu.map(x=>x[1].name).join(', ')}`;
   tdSay(msg)}
-function tdHit(e,d){if(e.dead||e.leak)return;e.hp-=d;if(e.hp<=0){e.dead=true;TD.kills++;const kg=1+Math.floor((TD.wave-1)/3);TD.gold+=(e.boss?kg*10:kg)+(TD&&TD.up?TD.up.bounty:0)}}
+function tdHit(e,d){if(e.dead||e.leak)return;e.hp-=d;if(e.hp<=0){e.dead=true;TD.kills++}}
 function tdFx(x1,y1,x2,y2,c){const s=$('#tdfx');if(!s)return;const l=document.createElementNS('http://www.w3.org/2000/svg','line');
   l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2);l.setAttribute('stroke',c);l.setAttribute('class','td-ln');s.appendChild(l);setTimeout(()=>l.remove(),180)}
 function tdVis(){const f=$('#tdf');return f?[f.clientWidth,f.clientHeight]:[600,400]}
@@ -964,7 +964,7 @@ function tdFire(i,t,st,target){const sx=TD_SLOTS[i][0],sy=TD_SLOTS[i][1];
     if(t.type==='cannon'){const r=st.splash+TD.up.splash;alive.filter(e=>Math.abs(e.x-target.x)<=r).forEach(e=>{const d=dmg();tdHit(e,e===target?d:d*.5)})}
     else if(t.type==='laser'){const inR=alive.filter(e=>Math.abs(e.x-sx)<=st.range&&e!==target).sort((a,b)=>b.x-a.x);
       [target,...inR].slice(0,st.pierce+TD.up.pierce).forEach(e=>tdHit(e,dmg()))}
-    else{tdHit(target,dmg());if(st.slow)target.slow=2+TD.up.slowDur}};
+    else{tdHit(target,dmg());if(st.slow)target.slow=2+TD.up.slowDur;if(Math.random()<TD.up.chain){const nb=alive.filter(x=>x!==target&&!x.dead).sort((a,b)=>Math.abs(a.x-target.x)-Math.abs(b.x-target.x))[0];if(nb&&Math.abs(nb.x-target.x)<=8)tdHit(nb,st.dmg*.5)}}};
   tdKick(i);
   if(t.type==='laser'){tdBeam(sx,sy,target.x,50);apply();return}
   const flight=t.type==='cannon'?.4:.2;
@@ -985,7 +985,7 @@ function tdTick(ts){if(!TD||TD.ended)return;const dt=Math.min(.05,(ts-(tdLast||t
     e.el.style.left=e.x+'%';e.el.classList.toggle('slow',e.slow>0);e.el.classList.toggle('frozen',(e.frozen||0)>0);e.el.querySelector('s').style.width=Math.max(0,e.hp/e.max*100)+'%';return true});
   if(TD.life<=0){tdEnd();return}
   if(TD.phase==='wave'&&!TD.queue.length&&!TD.enemies.length){
-    const rw=20+TD.wave*10+Math.floor(TD.gold*TD.up.interest);TD.gold+=rw;const clearedWave=TD.wave;TD.phase='break';TD.breakT=8;TD.wave++;
+    const rw=20+TD.wave*10+Math.floor(TD.gold*TD.up.interest);TD.gold+=rw;TD.life+=TD.up.regen;const clearedWave=TD.wave;TD.phase='break';TD.breakT=8;TD.wave++;
     tdSay(`웨이브 ${clearedWave} 클리어! +${rw}골드`);
     if(clearedWave%3===0&&TD.shopShown!==clearedWave){tdShowUpgradeShop()}
   }
@@ -1005,12 +1005,12 @@ function tdRenderPanel(){const p=$('#tdp');if(!p)return;if(!TD||!TD.sel){p.hidde
   p.hidden=false;const i=TD.sel.i,t=TD.towers[i];
   if(!t){p.innerHTML=`<div class="td-ph"><b>타워 세우기</b><button class="td-x" data-a="td-close" aria-label="닫기">×</button></div><div class="td-list">${Object.entries(TD_T).map(([k,s])=>{const cost=Math.round(s.cost*(TD&&TD.up?TD.up.discount:1)),ok=TD.wave>=s.unlock,can=TD.gold>=cost;
       return`<button class="td-item" data-a="td-buy" data-v="${k}" ${ok&&can?'':'disabled'}><i style="background:${s.col}"></i><span><b>${s.name}</b><small>${ok?s.desc:`웨이브 ${s.unlock}에 열려요`}</small></span><em>${cost}</em></button>`}).join('')}</div>`;return}
-  const s=TD_T[t.type],st=tdStats(t),up=tdUpCost(t),refund=Math.floor(t.spent/2);
+  const s=TD_T[t.type],st=tdStats(t),up=tdUpCost(t),refund=tdRefund(t);
   p.innerHTML=`<div class="td-ph"><b>${s.name} · ${t.lvl}단계</b><button class="td-x" data-a="td-close" aria-label="닫기">×</button></div>
   <p class="td-stat">${s.desc}<br>공격력 ${st.dmg} · 사거리 ${st.range} · 초당 ${(1/st.rate).toFixed(1)}회</p>
   <div class="td-acts">${t.lvl<5?`<button class="btn pri" data-a="td-up" ${TD.gold>=up?'':'disabled'}>업그레이드 · ${up}골드</button>`:'<span class="td-stat">최고 단계예요</span>'}
   <button class="btn" data-a="td-sell">판매 · +${refund}골드</button></div>
-  <p class="mute small" style="margin-top:8px;color:#8fa0c4">판매가는 쓴 돈의 절반이에요.</p>`}
+  <p class="mute small" style="margin-top:8px;color:#8fa0c4">판매가는 쓴 돈의 ${Math.round((.5+.2*TD.up.refund)*100)}%예요.</p>`}
 function vTD(){return layout(`<div class="td-wrap">
  <div class="td-hud">
    <div><b id="tdg">0</b><span>골드</span></div>
@@ -1041,7 +1041,7 @@ function vTD(){return layout(`<div class="td-wrap">
 function startTD(){const u=Store.me(),lang=lg(u);
   TD={lang,pool:shuffle(TEXT[lang].word.slice()),wi:0,gold:300,life:({ut1:15,ut2:20})[(Store.me().eq||{}).up_td]||10,wave:1,reached:0,kills:0,hit:0,tot:0,ok:0,bad:0,t0:performance.now(),
     phase:'break',breakT:6,queue:[],st:0,enemies:[],towers:Array(TD_SLOTS.length).fill(null),sel:null,nextId:1,msg:'',msgT:0,ended:false,psig:'',
-    shopOpen:false,shopShown:0,reroll:1,impacts:[],prep:true,loadout:[null,null,null],up:{dmg:1,rate:1,range:0,discount:1,bounty:0,crit:0,splash:0,pierce:0,slowDur:0,guard:0,interest:0,word:0}};
+    shopOpen:false,shopShown:0,reroll:1,impacts:[],prep:true,loadout:[null,null,null],up:{dmg:1,rate:1,range:0,discount:1,bounty:0,crit:0,splash:0,pierce:0,slowDur:0,guard:0,interest:0,word:0,chain:0,skill:0,refund:0,regen:0}};
   R=null;go('td')}
 function bindTD(){const inp=$('#tdi');if(!inp||!TD)return;cancelAnimationFrame(tdRaf);
   inp.focus();inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();tdSubmit()}});
@@ -1051,7 +1051,7 @@ function tdSubmit(){const inp=$('#tdi');if(!TD||!inp)return;const v=inp.value.tr
   if(TD.armed!=null){const id=TD.loadout[TD.armed];if(id&&v===TD_SK[id].keyword){const i=TD.armed;inp.value='';tdUseSkill(i,true);tdHud();return}}
   const w=TD.pool[TD.wi%TD.pool.length];
   TD.tot+=strokes(w);
-  if(v===w){TD.hit+=strokes(w);TD.ok++;TD.wi++;const wg=5+Math.floor((TD.wave-1)/3)*3+TD.up.word;TD.gold+=wg;inp.value=''}
+  if(v===w){TD.hit+=strokes(w);TD.ok++;TD.wi++;const wg=w.length*2+TD.wave+TD.up.word;TD.gold+=wg;inp.value=''}
   else{TD.bad++;inp.classList.remove('no');void inp.offsetWidth;inp.classList.add('no')}
   tdHud()}
 function tdShowPrep(){const u=Store.me(),inv=u.inv||{},ids=Object.keys(TD_SK).filter(k=>(inv[k]||0)>0);
@@ -1068,9 +1068,9 @@ function tdRenderSkills(){if(!TD)return;[0,1,2].forEach(i=>{const b=$('#tdsk'+i)
 function tdUseSkill(i,typed){if(!TD||TD.prep||TD.shopOpen)return;const id=TD.loadout[i];if(!id)return;
   if(!typed){TD.armed=TD.armed===i?null:i;tdRenderSkills();tdHud();if(TD.armed!=null)tdSay(`${TD_SK[id].name} 준비! "${TD_SK[id].keyword}"을 쳐서 발동하세요`);$('#tdi')?.focus();return}
   TD.loadout[i]=null;TD.armed=null;Store.useConsumable(id).catch(()=>{});
-  if(id==='ac_ice'){TD.enemies.forEach(e=>{if(!e.dead&&!e.leak)e.frozen=4});tdSay('얼음! 적 전체가 4초 동안 멈췄어요')}
-  else if(id==='ac_thunder'){TD.enemies.forEach(e=>{if(e.dead||e.leak)return;tdHit(e,e.boss?e.max*.1:e.max*.3);tdRing(e.x,'#ffd84d')});tdSay('번개! 적들이 큰 피해를 입었어요')}
-  else if(id==='ac_heal'){TD.life+=2;tdSay('기지 회복 +2')}
+  if(id==='ac_ice'){TD.enemies.forEach(e=>{if(!e.dead&&!e.leak)e.frozen=4+TD.up.skill});tdSay('얼음! 적 전체가 4초 동안 멈췄어요')}
+  else if(id==='ac_thunder'){TD.enemies.forEach(e=>{if(e.dead||e.leak)return;tdHit(e,e.boss?e.max*.1:e.max*(.3+.1*TD.up.skill));tdRing(e.x,'#ffd84d')});tdSay('번개! 적들이 큰 피해를 입었어요')}
+  else if(id==='ac_heal'){TD.life+=2+TD.up.skill;tdSay(`기지 회복 +${2+TD.up.skill}`)}
   tdRenderSkills();tdHud()}
 function tdAct(a,v){if(!TD)return;const sel=TD.sel;
   if(a==='td-go')return tdGo();if(a==='td-skill')return tdUseSkill(+v);
@@ -1080,7 +1080,7 @@ function tdAct(a,v){if(!TD)return;const sel=TD.sel;
   else if(a==='td-close')TD.sel=null;
   else if(a==='td-buy'&&sel){const s=TD_T[v],i=sel.i,cost=Math.round(s.cost*(TD.up?TD.up.discount:1));if(!TD.towers[i]&&TD.wave>=s.unlock&&TD.gold>=cost){TD.gold-=cost;TD.towers[i]={type:v,lvl:1,spent:cost,cd:0};TD.sel=null}}
   else if(a==='td-up'&&sel){const t=TD.towers[sel.i];if(t&&t.lvl<5){const c=tdUpCost(t);if(TD.gold>=c){TD.gold-=c;t.spent+=c;t.lvl++}}}
-  else if(a==='td-sell'&&sel){const t=TD.towers[sel.i];if(t){TD.gold+=Math.floor(t.spent/2);TD.towers[sel.i]=null;TD.sel=null}}
+  else if(a==='td-sell'&&sel){const t=TD.towers[sel.i];if(t){TD.gold+=tdRefund(t);TD.towers[sel.i]=null;TD.sel=null}}
   else if(a==='td-next'){if(TD.phase==='break')TD.breakT=0}
   else if(a==='td-quit'){tdEnd();return}
   TD.towers.forEach((_,i)=>tdRenderSlot(i));tdRenderPanel();tdHud();
