@@ -344,6 +344,7 @@ body.td-mode main>section{margin:0}
 <div id="app"></div>
 <script>
 const SB={url:'https://peuvixydcgmfgfejdcgn.supabase.co',key:'sb_publishable_LEpZWlWGxSgDkrVGxQERpg_Pq42SbZM'};
+const APP_VERSION='2.1.0';
 
 const LS=(()=>{const m={};let ok=true;
   try{window.localStorage.setItem('__t','1');window.localStorage.removeItem('__t')}catch{ok=false}
@@ -494,9 +495,10 @@ const SupaStore=(()=>{
     if(!r.ok)throw Error(j&&j.message||'문제가 생겼어요. 잠시 뒤에 다시 해 주세요.');return j};
   return{
     scope:'우리 반 모두의 기록이에요.',
-    async init(){if(tok())try{ME=await rpc('tadak_me',{p_token:tok()})}catch(e){if(/로그인/.test(e.message))LS.removeItem(TK)}},
-    async signup(n,p){const r=await rpc('tadak_signup',{p_nick:n,p_pw:p});LS.setItem(TK,r.token);ME=r.me},
-    async login(n,p){const r=await rpc('tadak_login',{p_nick:n,p_pw:p});LS.setItem(TK,r.token);ME=r.me},
+    async notice(){return rpc('tadak_notice',{})},
+    async init(){if(tok())try{ME=await rpc('tadak_me',{p_token:tok(),p_ver:APP_VERSION})}catch(e){if(/로그인/.test(e.message))LS.removeItem(TK)}},
+    async signup(n,p){const r=await rpc('tadak_signup',{p_nick:n,p_pw:p,p_ver:APP_VERSION});LS.setItem(TK,r.token);ME=r.me},
+    async login(n,p){const r=await rpc('tadak_login',{p_nick:n,p_pw:p,p_ver:APP_VERSION});LS.setItem(TK,r.token);ME=r.me},
     me:()=>ME,
     logout(){const t=tok();LS.removeItem(TK);ME=null;if(t)rpc('tadak_logout',{p_token:t}).catch(()=>{})},
     async deleteAccount(){await rpc('tadak_delete_account',{p_token:tok()});LS.removeItem(TK);ME=null},
@@ -505,7 +507,7 @@ const SupaStore=(()=>{
     async buyConsumable(id){ME=await rpc('tadak_buy_consumable',{p_token:tok(),p_item:id})},
     async useConsumable(id){ME=await rpc('tadak_use_consumable',{p_token:tok(),p_item:id})},
     async equip(slot,id){const n=(ME.own||[]).length;ME=await rpc('tadak_equip',{p_token:tok(),p_slot:slot,p_id:id});return ME.own.length>n},
-    async addScore(r){ME=await rpc('tadak_submit',{p_token:tok(),p_mode:r.mode,p_lang:r.lang,p_cpm:r.cpm,p_max:r.max,p_acc:r.acc,p_score:r.score,p_pts:r.pts,p_wave:r.wave??null})},
+    async addScore(r){ME=await rpc('tadak_submit',{p_token:tok(),p_mode:r.mode,p_lang:r.lang,p_cpm:r.cpm,p_max:r.max,p_acc:r.acc,p_score:r.score,p_pts:r.pts,p_wave:r.wave??null,p_ver:APP_VERSION})},
     top:(mode,lang,n)=>rpc('tadak_top',{p_mode:mode,p_lang:lang,p_n:n}),
     mine:()=>rpc('tadak_mine',{p_token:tok()})
   }})();
@@ -762,7 +764,7 @@ async function finish(){clearInterval(timer);const g=G;G=null;
   const acc=g.tot?Math.round(g.hit/g.tot*100):0,score=Math.round(g.hit*acc/100);
   await saveResult({mode:g.mode,lang:g.lang,cpm:g.hit,max:Math.max(g.max,g.hit),acc,score,pts:score>0?g.hit:0})}
 async function persist(){const u=Store.me(),o=R;
-  try{o.err='';if(o.score>0){const prev=await Store.mine(u.k);
+  try{o.err='';if(o.score>0||o.pts>0){const prev=await Store.mine(u.k);
     o.pb=o.score>Math.max(0,...prev.filter(s=>s.mode===o.mode&&s.lang===o.lang).map(s=>s.score));
     await Store.addScore({u:u.k,mode:o.mode,lang:o.lang,cpm:o.cpm,max:o.max,acc:o.acc,score:o.score,pts:o.pts,at:Date.now()});
     o.saved=true;o.rank=(await Store.top(o.mode,o.lang,1000)).findIndex(s=>s.u===u.k)+1}}
@@ -898,7 +900,7 @@ const TD_T={
   arrow:{name:'화살탑',cost:60,unlock:1,range:14,rate:.7,dmg:4,col:'#7bd35a',desc:'빠르게 쏘는 기본 탑이에요.'},
   cannon:{name:'대포탑',cost:144,unlock:3,range:12,rate:1.6,dmg:14,splash:7,col:'#ffb347',desc:'맞은 적 주변까지 피해를 줘요.'},
   ice:{name:'얼음탑',cost:120,unlock:5,range:13,rate:1.2,dmg:3,slow:1,col:'#7fd8ff',desc:'맞은 적을 2초 동안 느리게 해요.'},
-  laser:{name:'레이저탑',cost:312,unlock:8,range:24,rate:1,dmg:20,pierce:3,col:'#ff5d8f',desc:'여러 적을 한꺼번에 관통해요.'}};
+  laser:{name:'레이저탑',cost:312,unlock:8,range:24,rate:1,dmg:20,pierce:3,col:'#ff5d8f',desc:'여러 적을 한꺼번에 관통해요.'},elec:{name:'일렉탑',cost:420,unlock:10,range:16,rate:.9,dmg:10,chain:3,col:'#ffe94d',desc:'공격하면 3체인 번개로 주변 적을 함께 공격해요.'}};
 const TD_SLOTS=[[10,22],[18,22],[26,22],[34,22],[42,22],[50,22],[58,22],[66,22],[74,22],[82,22],[14,78],[22,78],[30,78],[38,78],[46,78],[54,78],[62,78],[70,78],[78,78],[86,78]];
 const TD_ART={
   arrow:`<svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="59" rx="20" ry="4" fill="#000" opacity=".25"/><path d="M18 58L21 30H43L46 58Z" fill="#c8915c" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><path d="M22 44H42M21.5 36.5H42.5" stroke="#8a5a34" stroke-width="2.5" opacity=".7"/><rect x="27" y="45" width="10" height="13" rx="2" fill="${INK}"/><path d="M14 30L32 9L50 30Z" fill="#e5484d" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><path d="M19 27H45" stroke="${INK}" stroke-width="3" stroke-linecap="round"/><path d="M32 9V3" stroke="${INK}" stroke-width="2.5"/><path d="M32 3H40L37 6.5L40 10H32Z" fill="#ffd84d" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/><path d="M22 23Q32 20 42 23" stroke="#fff" stroke-width="2" opacity=".5" fill="none" stroke-linecap="round"/></svg>`,
@@ -921,19 +923,20 @@ const TD_SK={
   ac_ice:{name:'얼음',keyword:'얼음',desc:'적 전체를 4초 동안 멈춰요.'},
   ac_thunder:{name:'번개',keyword:'번개',desc:'적에게 체력의 30%(보스는 10%) 피해를 줘요.'},
   ac_heal:{name:'회복',keyword:'회복',desc:'기지 체력을 2 회복해요.'}};
+TD_ART.elec=`<svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="59" rx="20" ry="4" fill="#000" opacity=".25"/><path d="M22 58L25 34H39L42 58Z" fill="#5b4bb0" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><rect x="20" y="30" width="24" height="6" rx="3" fill="#3a2f80" stroke="${INK}" stroke-width="3"/><path d="M28 44L36 40M28 50L36 46" stroke="#ffe94d" stroke-width="2.5" stroke-linecap="round"/><circle cx="32" cy="20" r="11" fill="#ffe94d" opacity=".4"/><circle cx="32" cy="20" r="7" fill="#fff6a8" stroke="${INK}" stroke-width="3"/><path d="M30 6L26 16H33L29 26" fill="none" stroke="#ffe94d" stroke-width="2.5" stroke-linejoin="round"/></svg>`;
 let TD=null,tdRaf=0,tdLast=0;
 const tdUpCost=t=>Math.round(TD_T[t.type].cost*.8*t.lvl*(TD&&TD.up?TD.up.discount:1));
 function tdStats(t){const s=TD_T[t.type],m=[1,1.8,3,4.5,6.5][t.lvl-1]||6.5,r=[1,.85,.7,.6,.5][t.lvl-1]||.5;
-  return{dmg:Math.round(s.dmg*m*(TD&&TD.up?TD.up.dmg:1)*10)/10,rate:s.rate*r*(TD&&TD.up?TD.up.rate:1),range:s.range+([0,2,4,6,8][t.lvl-1]||8)+(TD&&TD.up?TD.up.range:0),splash:s.splash,pierce:s.pierce,slow:s.slow}}
-const TD_AUGMENTS=[{id:'dmg',icon:'⚔️',name:'강력한 무기',desc:'타워 공격력 +20%'},{id:'range',icon:'🔭',name:'망원 렌즈',desc:'타워 사거리 +2'},{id:'rate',icon:'⚡',name:'고속 장전',desc:'타워 공속 +15%'},{id:'discount',icon:'🏷️',name:'건축가',desc:'설치/업글 비용 -15%'},{id:'chain',icon:'🔗',name:'연쇄 공격',desc:'탄이 맞으면 20% 확률로 근처 적에게 절반 피해'},{id:'skill',icon:'🌟',name:'스킬 위력',desc:'액티브 스킬 효과 강화 (회복 +1, 얼음 +1초, 번개 +10%)'},{id:'refund',icon:'💰',name:'환급 장인',desc:'타워 판매 환급 +20%'},{id:'regen',icon:'🌱',name:'자가 수리',desc:'웨이브 클리어마다 기지 체력 +1'},{id:'gold',icon:'💰',name:'대부호',desc:'즉시 150 골드 획득'},{id:'heal',icon:'❤️',name:'수리공',desc:'기지 체력 +5 회복'},{id:'crit',icon:'🎯',name:'정밀 사격',desc:'타워 공격 15% 확률로 2배 피해'},{id:'splash',icon:'💥',name:'폭발 반경',desc:'대포탑 폭발 범위 +2'},{id:'pierce',icon:'🔱',name:'관통 강화',desc:'레이저탑 관통 대상 +1'},{id:'slowDur',icon:'🧊',name:'빙결 연장',desc:'얼음 둔화 지속 +1초'},{id:'guard',icon:'🛡️',name:'기지 방벽',desc:'적이 기지에 닿을 때 피해 -1'},{id:'interest',icon:'🏦',name:'복리',desc:'웨이브 클리어 보상 +10% 골드'},{id:'word',icon:'✏️',name:'타자 장인',desc:'낱말 하나당 골드 +2'}];
+  return{dmg:Math.round(s.dmg*m*(TD&&TD.up?TD.up.dmg:1)*10)/10,rate:s.rate*r*(TD&&TD.up?TD.up.rate:1),range:s.range+([0,2,4,6,8][t.lvl-1]||8)+(TD&&TD.up?TD.up.range:0),splash:s.splash,pierce:s.pierce,slow:s.slow,chain:s.chain||0}}
+const TD_AUGMENTS=[{id:'dmg',icon:'⚔️',name:'강력한 무기',desc:'타워 공격력 +15%'},{id:'range',icon:'🔭',name:'망원 렌즈',desc:'타워 사거리 +2'},{id:'rate',icon:'⚡',name:'고속 장전',desc:'타워 공속 +15%'},{id:'discount',icon:'🏷️',name:'건축가',desc:'설치/업글 비용 -10% (최대 -30%)'},{id:'chain',icon:'🔗',name:'연쇄 공격',desc:'탄이 맞으면 15% 확률로 근처 적에게 절반 피해 (최대 45%)'},{id:'skill',icon:'🌟',name:'스킬 위력',desc:'얼음 +1초, 번개 피해 +10%'},{id:'refund',icon:'💰',name:'환급 장인',desc:'타워 판매 환급 +20%'},{id:'gold',icon:'🪙',name:'대부호',desc:'즉시 100 골드 획득'},{id:'crit',icon:'🎯',name:'정밀 사격',desc:'타워 공격 10% 확률로 2배 피해 (최대 40%)'},{id:'splash',icon:'💥',name:'폭발 반경',desc:'대포탑 폭발 범위 +2'},{id:'pierce',icon:'🔱',name:'관통 강화',desc:'레이저탑 관통 대상 +1'},{id:'slowDur',icon:'🧊',name:'빙결 연장',desc:'얼음 둔화 지속 +1초'},{id:'interest',icon:'🏦',name:'복리',desc:'웨이브 클리어 보상 +5% 골드 (최대 15%)'},{id:'word',icon:'✏️',name:'타자 장인',desc:'낱말 하나당 골드 +1'}];
 function tdRenderAugmentUI(){const cards=shuffle(TD_AUGMENTS.slice()).slice(0,3);let layer=document.getElementById('tdUpgradeScreen');if(!layer){layer=document.createElement('div');layer.className='upgrade-screen';layer.id='tdUpgradeScreen';$('.td-wrap').appendChild(layer)}layer.innerHTML=`<div class="upgrade-panel"><h2>증강 선택</h2><p>3웨이브마다 주어지는 특수 능력 (1개만 선택 가능)</p><div class="upgrade-cards">${cards.map(c=>`<button class="upgrade-card" data-a="td-aug" data-v="${c.id}"><span class="emoji">${c.icon}</span><b>${c.name}</b><span>${c.desc}</span></button>`).join('')}</div><div style="margin-top:16px"><button class="btn" data-a="td-reroll" ${TD.reroll<=0?'disabled':''}>새로고침 (남은 횟수: ${TD.reroll})</button></div></div>`;}
 function tdShowUpgradeShop(){if(!TD||TD.shopOpen)return;TD.shopOpen=true;TD.shopShown=TD.wave-1;TD.reroll=1;$('#tdi')?.blur();tdRenderAugmentUI();}
 function tdRefund(t){return Math.floor(t.spent*(.5+.2*TD.up.refund))}
-function tdBuyAugment(id){if(!TD||!TD.shopOpen)return;if(id==='dmg')TD.up.dmg*=1.2;if(id==='range')TD.up.range+=2;if(id==='rate')TD.up.rate*=0.85;if(id==='discount')TD.up.discount*=0.85;if(id==='chain')TD.up.chain+=.2;if(id==='skill')TD.up.skill+=1;if(id==='refund')TD.up.refund+=1;if(id==='regen')TD.up.regen+=1;if(id==='gold')TD.gold+=150;if(id==='heal')TD.life+=5;if(id==='crit')TD.up.crit+=.15;if(id==='splash')TD.up.splash+=2;if(id==='pierce')TD.up.pierce+=1;if(id==='slowDur')TD.up.slowDur+=1;if(id==='guard')TD.up.guard+=1;if(id==='interest')TD.up.interest+=.1;if(id==='word')TD.up.word+=2;tdCloseAugmentShop();}
+function tdBuyAugment(id){if(!TD||!TD.shopOpen)return;const U=TD.up;if(id==='dmg')U.dmg*=1.15;if(id==='range')U.range+=2;if(id==='rate')U.rate*=0.85;if(id==='discount')U.discount=Math.max(.7,U.discount*.9);if(id==='chain')U.chain=Math.min(.45,U.chain+.15);if(id==='skill')U.skill+=1;if(id==='refund')U.refund+=1;if(id==='gold')TD.gold+=100;if(id==='crit')U.crit=Math.min(.4,U.crit+.1);if(id==='splash')U.splash+=2;if(id==='pierce')U.pierce+=1;if(id==='slowDur')U.slowDur+=1;if(id==='interest')U.interest=Math.min(.15,U.interest+.05);if(id==='word')U.word+=1;tdCloseAugmentShop();}
 function tdRerollAugment(){if(!TD||!TD.shopOpen||TD.reroll<=0)return;TD.reroll--;tdRenderAugmentUI();}
 function tdCloseAugmentShop(){if(!TD)return;$('#tdUpgradeScreen')?.remove();TD.shopOpen=false;$('#tdi')?.focus();}
-function tdQueue(w){const n=4+w*2,q=[];for(let i=0;i<n;i++)q.push({boss:false,hp:7*(10+w*2),sp:(3+w*.2+Math.random())*.8});
-  if(w%5===0)q.push({boss:true,hp:7*(10+w*2)*10,sp:(2.2+w*.1)/2*.8});return q}
+function tdQueue(w){const n=4+w*2,q=[];for(let i=0;i<n;i++)q.push({boss:false,hp:10*(7+w*2),sp:(3+w*.2+Math.random())*.8});
+  if(w%5===0)q.push({boss:true,hp:10*(7+w*2)*10,sp:(2.2+w*.1)/2*.8});return q}
 function tdEnemyEl(e){const d=document.createElement('div');d.className='td-en'+(e.boss?' boss':'');d.innerHTML='<i></i><s></s>';$('#tdens').appendChild(d);return d}
 function tdSay(msg){if(!TD)return;TD.msg=msg;TD.msgT=2.6}
 function tdStartWave(){TD.phase='wave';TD.queue=tdQueue(TD.wave);TD.st=.6;TD.reached=Math.max(TD.reached||0,TD.wave);
@@ -964,9 +967,10 @@ function tdFire(i,t,st,target){const sx=TD_SLOTS[i][0],sy=TD_SLOTS[i][1];
     if(t.type==='cannon'){const r=st.splash+TD.up.splash;alive.filter(e=>Math.abs(e.x-target.x)<=r).forEach(e=>{const d=dmg();tdHit(e,e===target?d:d*.5)})}
     else if(t.type==='laser'){const inR=alive.filter(e=>Math.abs(e.x-sx)<=st.range&&e!==target).sort((a,b)=>b.x-a.x);
       [target,...inR].slice(0,st.pierce+TD.up.pierce).forEach(e=>tdHit(e,dmg()))}
+    else if(t.type==='elec'){tdHit(target,dmg());const ch=alive.filter(x=>x!==target&&!x.dead&&Math.abs(x.x-target.x)<=25).sort((a,b)=>Math.abs(a.x-target.x)-Math.abs(b.x-target.x)).slice(0,st.chain);ch.forEach(x=>{tdHit(x,st.dmg*.6);tdBeam(target.x,50,x.x,50)})}
     else{tdHit(target,dmg());if(st.slow)target.slow=2+TD.up.slowDur;if(Math.random()<TD.up.chain){const nb=alive.filter(x=>x!==target&&!x.dead).sort((a,b)=>Math.abs(a.x-target.x)-Math.abs(b.x-target.x))[0];if(nb&&Math.abs(nb.x-target.x)<=8)tdHit(nb,st.dmg*.5)}}};
   tdKick(i);
-  if(t.type==='laser'){tdBeam(sx,sy,target.x,50);apply();return}
+  if(t.type==='laser'||t.type==='elec'){tdBeam(sx,sy,target.x,50);apply();return}
   const flight=t.type==='cannon'?.4:.2;
   tdProj(t.type,sx,sy,target.x,50,flight);
   (TD.impacts=TD.impacts||[]).push({t:flight,fn:apply,type:t.type,x:target.x,r:st.splash+TD.up.splash,col:TD_T[t.type].col})}
@@ -993,7 +997,7 @@ function tdTick(ts){if(!TD||TD.ended)return;const dt=Math.min(.05,(ts-(tdLast||t
   if(sig!==TD.psig){TD.psig=sig;tdRenderPanel()}
   tdHud();tdRaf=requestAnimationFrame(tdTick)}
 function tdHud(){const set=(id,v)=>{const el=$('#'+id);if(el&&el.textContent!==String(v))el.textContent=String(v)};
-  set('tdg',TD.gold);set('tdl',Math.max(0,TD.life));set('tdw',TD.wave);set('tdk',TD.kills);set('tdp-hud',Math.floor(TD.gold/10));
+  set('tdg',TD.gold);set('tdl',Math.max(0,TD.life));set('tdw',TD.wave);set('tdk',TD.kills);set('tdp-hud',Math.floor(TD.gold/3));
   const el=(performance.now()-TD.t0)/1000;set('tdc',el>2?Math.round(TD.hit/(el/60)):0);
   const w=$('#tdw2');const word=TD.armed!=null&&TD.loadout[TD.armed]?TD_SK[TD.loadout[TD.armed]].keyword:TD.pool[TD.wi%TD.pool.length];if(w&&w.textContent!==word)w.textContent=word;
   const b=$('#tdb');if(b){const msg=TD.msgT>0?TD.msg:(TD.phase==='break'?`다음 웨이브까지 ${Math.ceil(TD.breakT)}초 · 낱말을 쳐서 골드를 벌어요`:'');if(b.textContent!==msg)b.textContent=msg}
@@ -1070,7 +1074,7 @@ function tdUseSkill(i,typed){if(!TD||TD.prep||TD.shopOpen)return;const id=TD.loa
   TD.loadout[i]=null;TD.armed=null;Store.useConsumable(id).catch(()=>{});
   if(id==='ac_ice'){TD.enemies.forEach(e=>{if(!e.dead&&!e.leak)e.frozen=4+TD.up.skill});tdSay('얼음! 적 전체가 4초 동안 멈췄어요')}
   else if(id==='ac_thunder'){TD.enemies.forEach(e=>{if(e.dead||e.leak)return;tdHit(e,e.boss?e.max*.1:e.max*(.3+.1*TD.up.skill));tdRing(e.x,'#ffd84d')});tdSay('번개! 적들이 큰 피해를 입었어요')}
-  else if(id==='ac_heal'){TD.life+=2+TD.up.skill;tdSay(`기지 회복 +${2+TD.up.skill}`)}
+  else if(id==='ac_heal'){TD.life+=2;tdSay('기지 회복 +2')}
   tdRenderSkills();tdHud()}
 function tdAct(a,v){if(!TD)return;const sel=TD.sel;
   if(a==='td-go')return tdGo();if(a==='td-skill')return tdUseSkill(+v);
@@ -1088,7 +1092,7 @@ function tdAct(a,v){if(!TD)return;const sel=TD.sel;
 async function tdEnd(){if(!TD||TD.ended)return;TD.ended=true;cancelAnimationFrame(tdRaf);const g=TD;TD=null;
   const mins=Math.max(.05,(performance.now()-g.t0)/60000),cpm=Math.round(g.hit/mins),acc=g.ok+g.bad?Math.round(g.ok/(g.ok+g.bad)*100):0,
     score=g.kills*10+Math.max(0,g.reached-1)*100;
-  await saveResult({mode:'td',lang:g.lang,cpm,max:cpm,acc,score,pts:Math.floor(g.gold/10),wave:g.reached})}
+  await saveResult({mode:'td',lang:g.lang,cpm,max:cpm,acc,score,pts:Math.floor(g.gold/3),wave:g.reached})}
 
 let AVIO=null;
 function watchAvatars(){if(AVIO)AVIO.disconnect();
@@ -1155,7 +1159,17 @@ document.addEventListener('change',e=>{
     if(!own.includes('ph_photo'))throw Error('사진 올리기는 300포인트로 먼저 열어 주세요.');
     if(f.type==='image/gif'&&!own.includes('ph_gif'))throw Error('움짤(GIF)은 500포인트로 먼저 열어 주세요.');
     await Store.patch({avatar:await toAvatar(f)})})}});
-if(!SB.url||!SB.key){document.getElementById('app').innerHTML='<section class="card" style="margin-top:40px"><h3>서버 설정이 필요해요</h3><p class="mute">SB 설정에 Supabase 주소와 anon 키를 넣어 주세요.</p></section>'}else Store.init().then(route,route);
+function showNoticeBox(text,block){const d=document.createElement('div');d.id='tdNotice';
+  d.style.cssText='position:fixed;inset:0;z-index:999;background:#0b1326dd;display:grid;place-items:center;padding:16px';
+  d.innerHTML=`<div class="card" style="max-width:460px;width:100%;background:#fff"><h3>${block?'새 버전 업데이트가 필요해요':'공지'}</h3><p class="notice-body" style="white-space:pre-line;margin:10px 0"></p><p><button class="btn pri" id="ntBtn">${block?'업데이트 받기':'확인'}</button></p></div>`;
+  d.querySelector('.notice-body').textContent=text;
+  document.body.appendChild(d);
+  d.querySelector('#ntBtn').onclick=block?()=>{location.href=location.pathname+'?v='+Date.now()}:()=>d.remove()}
+async function bootApp(){let info=null;try{info=await Store.notice()}catch{}
+  if(info&&info.version&&info.version!==APP_VERSION){showNoticeBox((info.notice||'새 버전이 나왔어요.')+'\n\n업데이트를 받은 뒤에 이용할 수 있어요.',true);return}
+  Store.init().then(route,route);
+  if(info&&info.notice&&window.localStorage.getItem('taja.notice')!==info.version){window.localStorage.setItem('taja.notice',info.version);showNoticeBox(info.notice,false)}}
+if(!SB.url||!SB.key){document.getElementById('app').innerHTML='<section class="card" style="margin-top:40px"><h3>서버 설정이 필요해요</h3><p class="mute">SB 설정에 Supabase 주소와 anon 키를 넣어 주세요.</p></section>'}else bootApp();
 </script>
 </body>
 </html>
