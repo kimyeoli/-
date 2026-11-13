@@ -338,13 +338,19 @@ body.td-mode main>section{margin:0}
 .td-en.frozen i{box-shadow:0 0 0 3px #bfeeff,0 0 14px #7fd8ff}
 .rig-svg.ghost{opacity:.4}
 .quit-btn{margin-left:auto;align-self:center;padding:6px 12px;font-size:14px}
+.att-row{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}
+.att-cell{border:2px solid #17233a;border-radius:10px;padding:6px 2px;text-align:center;background:#fff}
+.att-cell small{display:block;color:#5b6b85;font-size:11px}
+.att-cell b{font-size:14px}
+.att-cell.on{background:#fff6c2;box-shadow:0 3px 0 #17233a}
+@media(max-width:560px){.att-row{grid-template-columns:repeat(4,1fr)}}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <script>
 const SB={url:'https://peuvixydcgmfgfejdcgn.supabase.co',key:'sb_publishable_LEpZWlWGxSgDkrVGxQERpg_Pq42SbZM'};
-const APP_VERSION='2.1.0';
+const APP_VERSION='2.3.0';
 
 const LS=(()=>{const m={};let ok=true;
   try{window.localStorage.setItem('__t','1');window.localStorage.removeItem('__t')}catch{ok=false}
@@ -496,6 +502,7 @@ const SupaStore=(()=>{
   return{
     scope:'우리 반 모두의 기록이에요.',
     async notice(){return rpc('tadak_notice',{})},
+    async attend(){ME=await rpc('tadak_attend',{p_token:tok(),p_ver:APP_VERSION})},
     async init(){if(tok())try{ME=await rpc('tadak_me',{p_token:tok(),p_ver:APP_VERSION})}catch(e){if(/로그인/.test(e.message))LS.removeItem(TK)}},
     async signup(n,p){const r=await rpc('tadak_signup',{p_nick:n,p_pw:p,p_ver:APP_VERSION});LS.setItem(TK,r.token);ME=r.me},
     async login(n,p){const r=await rpc('tadak_login',{p_nick:n,p_pw:p,p_ver:APP_VERSION});LS.setItem(TK,r.token);ME=r.me},
@@ -562,8 +569,13 @@ function vAuth(){const su=authMode==='signup';
 ${su?'<label>비밀번호 확인<input name="p2" type="password" autocomplete="new-password"></label>':''}
 <p class="err" id="er"></p><button type="button" data-a="go" class="btn pri wide">${su?'계정 만들기':'로그인'}</button><p class="note">실명이나 연락처는 받지 않아요. 닉네임만 사용해요.</p>${Store===LocalStore?`<p class="note"><b>연습용 모드</b>예요. 계정이 이 브라우저에만 저장돼서 다른 컴퓨터에서는 로그인할 수 없어요.</p>`:''}${Store===LocalStore&&!LS.ok?'<p class="err">이 화면에서는 저장이 막혀 있어서 새로고침하면 계정이 사라져요. 브라우저에서 직접 열어 주세요.</p>':''}</div></section></div>`}
 
-async function vHome(){const u=Store.me(),m=await Store.mine(u.k);
+const ATT_REWARDS=[100,200,300,400,500,600,1000];
+function attendHTML(u){const a=u.att||{streak:0,claimed:false,next:1};const cyc=(a.next-1)%7;
+  const cells=ATT_REWARDS.map((p,i)=>`<div class="att-cell${i===cyc?' on':''}"><small>${i+1}일</small><b>${p}</b></div>`).join('');
+  return `<section class="card att"><h3>출석 보상</h3><p class="mute small">${a.claimed?'오늘 보상을 받았어요. 내일 또 와 주세요!':`오늘은 ${a.next}일차 보상: ${ATT_REWARDS[cyc]}포인트`}</p><div class="att-row">${cells}</div>${a.claimed?'':'<p style="margin-top:12px"><button class="btn pri" data-a="attend">출석 보상 받기</button></p>'}</section>`}
+async function vHome(){const msg=note;note='';const u=Store.me(),m=await Store.mine(u.k);
   return layout(`<section class="greet"><p class="mute">오늘도 손풀기부터 시작해 볼까요?</p><h2>${esc(u.nick)}님, 안녕하세요</h2></section>
+${msg?`<p class="mute" style="font-weight:700">${esc(msg)}</p>`:''}${attendHTML(u)}
 <section class="stats">${stat('최고 점수',Math.max(0,...m.map(s=>s.score)))}${stat('최고 평균 타수',Math.max(0,...m.map(s=>s.cpm)),'타/분')}${stat('최대 타수',Math.max(0,...m.map(s=>s.max)),'타/분')}${stat('포인트',u.pts||0,'점')}</section>
 <section class="modes">${Object.entries(MODE).map(([k,v],i)=>`<article class="card mode ${['w','s','m','x'][i]}"><h3>${v.name}</h3><p>${v.desc}</p><button class="btn ${i?'':'pri'}" data-a="play" data-v="${k}">${v.cta}</button></article>`).join('')}</section>
 <p class="mute small">연습 글감: ${lg(u)==='en'?'영어(EN)':'한글(KO)'}. 프로필 설정에서 바꿀 수 있어요.</p>`,'home')}
@@ -642,7 +654,7 @@ ${msg?`<p class="mute" style="margin-top:10px;font-weight:700">${esc(msg)}</p>`:
 <section class="card"><h3>다음 등급</h3>${nx?`<div class="bar"><i style="width:${Math.max(3,(bc-TIERS[ti][1])/(nx[1]-TIERS[ti][1])*100)}%"></i></div><p class="mute small" style="margin-top:8px">${nx[0]}까지 ${nx[1]-bc}타/분 남았어요.</p>`:'<p class="mute">가장 높은 등급이에요.</p>'}</section>
 <section class="card"><h3>최근 점수</h3>${spark(m.slice(-12).map(s=>s.score))}</section>
 <section><button class="btn" data-a="out">로그아웃</button></section>
-<section class="card" style="margin-top:14px"><h3>계정 삭제</h3><p class="mute small">계정, 기록, 포인트, 꾸민 캐릭터가 모두 지워지고 되돌릴 수 없어요.</p><p style="margin-top:12px"><button class="btn danger" data-a="del">계정 삭제</button></p></section>
+<p class="mute small" style="text-align:center;margin-top:10px">버전 ${APP_VERSION}</p><section class="card" style="margin-top:14px"><h3>계정 삭제</h3><p class="mute small">계정, 기록, 포인트, 꾸민 캐릭터가 모두 지워지고 되돌릴 수 없어요.</p><p style="margin-top:12px"><button class="btn danger" data-a="del">계정 삭제</button></p></section>
 <div class="hc"><input id="hc" type="text" autocomplete="off" aria-label="코드"><button type="button" data-a="code" aria-label="코드 확인">확인</button></div>`,'profile')}
 
 function vGame(){return layout(`<section class="card game"><div class="bar"><i id="pb"></i></div>
@@ -897,10 +909,10 @@ async function endMeteor(){cancelAnimationFrame(raf);const g=M;M=null;
 
 /* ===== 타워 디펜스 ===== */
 const TD_T={
-  arrow:{name:'화살탑',cost:60,unlock:1,range:14,rate:.7,dmg:4,col:'#7bd35a',desc:'빠르게 쏘는 기본 탑이에요.'},
-  cannon:{name:'대포탑',cost:144,unlock:3,range:12,rate:1.6,dmg:14,splash:7,col:'#ffb347',desc:'맞은 적 주변까지 피해를 줘요.'},
-  ice:{name:'얼음탑',cost:120,unlock:5,range:13,rate:1.2,dmg:3,slow:1,col:'#7fd8ff',desc:'맞은 적을 2초 동안 느리게 해요.'},
-  laser:{name:'레이저탑',cost:312,unlock:8,range:24,rate:1,dmg:20,pierce:3,col:'#ff5d8f',desc:'여러 적을 한꺼번에 관통해요.'},elec:{name:'일렉탑',cost:420,unlock:10,range:16,rate:.9,dmg:10,chain:3,col:'#ffe94d',desc:'공격하면 3체인 번개로 주변 적을 함께 공격해요.'}};
+  arrow:{name:'화살 타워',cost:60,unlock:1,range:14,rate:.7,dmg:7.8,col:'#7bd35a',desc:'빠르게 쏘는 기본 타워예요.'},
+  cannon:{name:'대포 타워',cost:144,unlock:3,range:12,rate:1.6,dmg:14,splash:4,col:'#ffb347',desc:'맞은 적 주변까지 피해를 줘요.'},
+  ice:{name:'얼음 타워',cost:120,unlock:5,range:13,rate:1.2,dmg:3,slow:1,col:'#7fd8ff',desc:'맞은 적을 2초 동안 느리게 해요.'},
+  laser:{name:'레이저 타워',cost:312,unlock:8,range:24,rate:1,dmg:40,pierce:5,col:'#ff5d8f',desc:'여러 적을 한꺼번에 관통해요.'},elec:{name:'일렉 타워',cost:420,unlock:10,range:16,rate:.9,dmg:30,chain:3,col:'#ffe94d',desc:'공격하면 3체인 번개로 주변 적을 함께 공격해요.'},inferno:{name:'인페르노 타워',cost:500,unlock:12,range:14,rate:.5,dmg:4,col:'#ff7a2e',desc:'같은 적을 계속 맞힐수록 공격력이 올라가요 (최대 4배).'},supply:{name:'서플라이 타워',cost:360,unlock:6,range:0,rate:1,dmg:0,col:'#7fe0c0',desc:'양옆 타워의 공격력과 공격 속도를 1.5배로 올려요.',support:true}};
 const TD_SLOTS=[[10,22],[18,22],[26,22],[34,22],[42,22],[50,22],[58,22],[66,22],[74,22],[82,22],[14,78],[22,78],[30,78],[38,78],[46,78],[54,78],[62,78],[70,78],[78,78],[86,78]];
 const TD_ART={
   arrow:`<svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="59" rx="20" ry="4" fill="#000" opacity=".25"/><path d="M18 58L21 30H43L46 58Z" fill="#c8915c" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><path d="M22 44H42M21.5 36.5H42.5" stroke="#8a5a34" stroke-width="2.5" opacity=".7"/><rect x="27" y="45" width="10" height="13" rx="2" fill="${INK}"/><path d="M14 30L32 9L50 30Z" fill="#e5484d" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><path d="M19 27H45" stroke="${INK}" stroke-width="3" stroke-linecap="round"/><path d="M32 9V3" stroke="${INK}" stroke-width="2.5"/><path d="M32 3H40L37 6.5L40 10H32Z" fill="#ffd84d" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/><path d="M22 23Q32 20 42 23" stroke="#fff" stroke-width="2" opacity=".5" fill="none" stroke-linecap="round"/></svg>`,
@@ -924,19 +936,22 @@ const TD_SK={
   ac_thunder:{name:'번개',keyword:'번개',desc:'적에게 체력의 30%(보스는 10%) 피해를 줘요.'},
   ac_heal:{name:'회복',keyword:'회복',desc:'기지 체력을 2 회복해요.'}};
 TD_ART.elec=`<svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="59" rx="20" ry="4" fill="#000" opacity=".25"/><path d="M22 58L25 34H39L42 58Z" fill="#5b4bb0" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><rect x="20" y="30" width="24" height="6" rx="3" fill="#3a2f80" stroke="${INK}" stroke-width="3"/><path d="M28 44L36 40M28 50L36 46" stroke="#ffe94d" stroke-width="2.5" stroke-linecap="round"/><circle cx="32" cy="20" r="11" fill="#ffe94d" opacity=".4"/><circle cx="32" cy="20" r="7" fill="#fff6a8" stroke="${INK}" stroke-width="3"/><path d="M30 6L26 16H33L29 26" fill="none" stroke="#ffe94d" stroke-width="2.5" stroke-linejoin="round"/></svg>`;
+TD_ART.inferno=`<svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="59" rx="20" ry="4" fill="#000" opacity=".25"/><path d="M20 58L24 36H40L44 58Z" fill="#6b5a5a" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><path d="M32 6C40 18 46 22 44 32C42 40 36 40 32 34C34 30 28 26 26 32C22 26 24 14 32 6Z" fill="#ff7a2e" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/><path d="M32 18C35 24 38 26 37 32C36 36 31 37 30 33C31 30 28 28 28 24C30 22 31 20 32 18Z" fill="#ffe94d"/></svg>`;
+TD_ART.supply=`<svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="59" rx="20" ry="4" fill="#000" opacity=".25"/><path d="M20 58L24 40H40L44 58Z" fill="#4fb8a0" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><circle cx="32" cy="30" r="12" fill="#bff5e2" stroke="${INK}" stroke-width="3"/><path d="M32 22V38M26 28L32 22L38 28" fill="none" stroke="${INK}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 36H19M45 36H52" stroke="#7fe0c0" stroke-width="3" stroke-linecap="round"/></svg>`;
 let TD=null,tdRaf=0,tdLast=0;
 const tdUpCost=t=>Math.round(TD_T[t.type].cost*.8*t.lvl*(TD&&TD.up?TD.up.discount:1));
-function tdStats(t){const s=TD_T[t.type],m=[1,1.8,3,4.5,6.5][t.lvl-1]||6.5,r=[1,.85,.7,.6,.5][t.lvl-1]||.5;
-  return{dmg:Math.round(s.dmg*m*(TD&&TD.up?TD.up.dmg:1)*10)/10,rate:s.rate*r*(TD&&TD.up?TD.up.rate:1),range:s.range+([0,2,4,6,8][t.lvl-1]||8)+(TD&&TD.up?TD.up.range:0),splash:s.splash,pierce:s.pierce,slow:s.slow,chain:s.chain||0}}
-const TD_AUGMENTS=[{id:'dmg',icon:'⚔️',name:'강력한 무기',desc:'타워 공격력 +15%'},{id:'range',icon:'🔭',name:'망원 렌즈',desc:'타워 사거리 +2'},{id:'rate',icon:'⚡',name:'고속 장전',desc:'타워 공속 +15%'},{id:'discount',icon:'🏷️',name:'건축가',desc:'설치/업글 비용 -10% (최대 -30%)'},{id:'chain',icon:'🔗',name:'연쇄 공격',desc:'탄이 맞으면 15% 확률로 근처 적에게 절반 피해 (최대 45%)'},{id:'skill',icon:'🌟',name:'스킬 위력',desc:'얼음 +1초, 번개 피해 +10%'},{id:'refund',icon:'💰',name:'환급 장인',desc:'타워 판매 환급 +20%'},{id:'gold',icon:'🪙',name:'대부호',desc:'즉시 100 골드 획득'},{id:'crit',icon:'🎯',name:'정밀 사격',desc:'타워 공격 10% 확률로 2배 피해 (최대 40%)'},{id:'splash',icon:'💥',name:'폭발 반경',desc:'대포탑 폭발 범위 +2'},{id:'pierce',icon:'🔱',name:'관통 강화',desc:'레이저탑 관통 대상 +1'},{id:'slowDur',icon:'🧊',name:'빙결 연장',desc:'얼음 둔화 지속 +1초'},{id:'interest',icon:'🏦',name:'복리',desc:'웨이브 클리어 보상 +5% 골드 (최대 15%)'},{id:'word',icon:'✏️',name:'타자 장인',desc:'낱말 하나당 골드 +1'}];
+function tdSupplyCount(i){if(i==null||!TD)return 0;const [x,y]=TD_SLOTS[i];let n=0;TD.towers.forEach((o,j)=>{if(o&&o.type==='supply'&&j!==i&&TD_SLOTS[j][1]===y&&Math.abs(TD_SLOTS[j][0]-x)<=8.5)n++});return Math.min(2,n)}
+const TD_UPM={cannon:[1,1.5,2.2,3,4]};
+function tdStats(t,i){const s=TD_T[t.type],m=(TD_UPM[t.type]||[1,1.8,3,4.5,6.5])[t.lvl-1]||1,r=[1,.85,.7,.6,.5][t.lvl-1]||.5;const sup=tdSupplyCount(i),sb=Math.pow(1.5,sup);let dmg=s.dmg*m*(TD&&TD.up?TD.up.dmg:1)*sb;if(t.type==='inferno')dmg*=1+0.15*(t.focusN||0);return{dmg:Math.round(dmg*10)/10,rate:s.rate*r*(TD&&TD.up?TD.up.rate:1)/sb,range:s.range+([0,2,4,6,8][t.lvl-1]||8)+(TD&&TD.up?TD.up.range:0),splash:s.splash,pierce:s.pierce,slow:s.slow,chain:s.chain||0}}
+const TD_AUGMENTS=[{id:'dmg',icon:'⚔️',name:'강력한 무기',desc:'타워 공격력 +15%'},{id:'range',icon:'🔭',name:'망원 렌즈',desc:'타워 사거리 +2'},{id:'rate',icon:'⚡',name:'고속 장전',desc:'타워 공속 +15%'},{id:'discount',icon:'🏷️',name:'건축가',desc:'설치/업글 비용 -10% (최대 -30%)'},{id:'chain',icon:'🔗',name:'연쇄 공격',desc:'탄이 맞으면 15% 확률로 근처 적에게 절반 피해 (최대 45%)'},{id:'skill',icon:'🌟',name:'스킬 위력',desc:'얼음 +1초, 번개 피해 +10%'},{id:'refund',icon:'💰',name:'환급 장인',desc:'타워 판매 환급 +20%'},{id:'gold',icon:'🪙',name:'대부호',desc:'즉시 100 골드 획득'},{id:'crit',icon:'🎯',name:'정밀 사격',desc:'타워 공격 10% 확률로 2배 피해 (최대 40%)'},{id:'splash',icon:'💥',name:'폭발 반경',desc:'대포 타워 폭발 범위 +2'},{id:'pierce',icon:'🔱',name:'관통 강화',desc:'레이저 타워 관통 대상 +1'},{id:'slowDur',icon:'🧊',name:'빙결 연장',desc:'얼음 둔화 지속 +1초'},{id:'interest',icon:'🏦',name:'복리',desc:'웨이브 클리어 보상 +5% 골드 (최대 15%)'},{id:'word',icon:'✏️',name:'타자 장인',desc:'낱말 하나당 골드 +1'}];
 function tdRenderAugmentUI(){const cards=shuffle(TD_AUGMENTS.slice()).slice(0,3);let layer=document.getElementById('tdUpgradeScreen');if(!layer){layer=document.createElement('div');layer.className='upgrade-screen';layer.id='tdUpgradeScreen';$('.td-wrap').appendChild(layer)}layer.innerHTML=`<div class="upgrade-panel"><h2>증강 선택</h2><p>3웨이브마다 주어지는 특수 능력 (1개만 선택 가능)</p><div class="upgrade-cards">${cards.map(c=>`<button class="upgrade-card" data-a="td-aug" data-v="${c.id}"><span class="emoji">${c.icon}</span><b>${c.name}</b><span>${c.desc}</span></button>`).join('')}</div><div style="margin-top:16px"><button class="btn" data-a="td-reroll" ${TD.reroll<=0?'disabled':''}>새로고침 (남은 횟수: ${TD.reroll})</button></div></div>`;}
 function tdShowUpgradeShop(){if(!TD||TD.shopOpen)return;TD.shopOpen=true;TD.shopShown=TD.wave-1;TD.reroll=1;$('#tdi')?.blur();tdRenderAugmentUI();}
 function tdRefund(t){return Math.floor(t.spent*(.5+.2*TD.up.refund))}
 function tdBuyAugment(id){if(!TD||!TD.shopOpen)return;const U=TD.up;if(id==='dmg')U.dmg*=1.15;if(id==='range')U.range+=2;if(id==='rate')U.rate*=0.85;if(id==='discount')U.discount=Math.max(.7,U.discount*.9);if(id==='chain')U.chain=Math.min(.45,U.chain+.15);if(id==='skill')U.skill+=1;if(id==='refund')U.refund+=1;if(id==='gold')TD.gold+=100;if(id==='crit')U.crit=Math.min(.4,U.crit+.1);if(id==='splash')U.splash+=2;if(id==='pierce')U.pierce+=1;if(id==='slowDur')U.slowDur+=1;if(id==='interest')U.interest=Math.min(.15,U.interest+.05);if(id==='word')U.word+=1;tdCloseAugmentShop();}
 function tdRerollAugment(){if(!TD||!TD.shopOpen||TD.reroll<=0)return;TD.reroll--;tdRenderAugmentUI();}
 function tdCloseAugmentShop(){if(!TD)return;$('#tdUpgradeScreen')?.remove();TD.shopOpen=false;$('#tdi')?.focus();}
-function tdQueue(w){const n=4+w*2,q=[];for(let i=0;i<n;i++)q.push({boss:false,hp:10*(7+w*2),sp:(3+w*.2+Math.random())*.8});
-  if(w%5===0)q.push({boss:true,hp:10*(7+w*2)*10,sp:(2.2+w*.1)/2*.8});return q}
+function tdQueue(w){const n=4+w*2,q=[];for(let i=0;i<n;i++)q.push({boss:false,hp:12*(10+4*w),sp:(3+w*.2+Math.random())*.8});
+  if(w%5===0)q.push({boss:true,hp:12*(10+4*w)*10,sp:(2.2+w*.1)/2*.8});return q}
 function tdEnemyEl(e){const d=document.createElement('div');d.className='td-en'+(e.boss?' boss':'');d.innerHTML='<i></i><s></s>';$('#tdens').appendChild(d);return d}
 function tdSay(msg){if(!TD)return;TD.msg=msg;TD.msgT=2.6}
 function tdStartWave(){TD.phase='wave';TD.queue=tdQueue(TD.wave);TD.st=.6;TD.reached=Math.max(TD.reached||0,TD.wave);
@@ -982,9 +997,9 @@ function tdTick(ts){if(!TD||TD.ended)return;const dt=Math.min(.05,(ts-(tdLast||t
   for(const e of TD.enemies){if(e.dead||e.leak)continue;e.slow=Math.max(0,e.slow-dt);e.frozen=Math.max(0,(e.frozen||0)-dt);e.x+=e.sp*((e.frozen||0)>0?0:e.slow>0?.5:1)*dt;
     if(e.x>=88){e.leak=true;TD.life-=Math.max(0,(e.boss?3:1)-TD.up.guard);tdSay('기지가 공격받았어요!')}}
   TD.impacts=(TD.impacts||[]).filter(im=>{im.t-=dt;if(im.t>0)return true;im.fn();if(im.type==='cannon')tdBoom(im.x,im.r);else tdRing(im.x,im.col);return false});
-  TD.towers.forEach((t,i)=>{if(!t)return;t.cd-=dt;if(t.cd>0)return;const st=tdStats(t),sx=TD_SLOTS[i][0];
-    const target=TD.enemies.filter(e=>!e.dead&&!e.leak&&Math.abs(e.x-sx)<=st.range).sort((a,b)=>b.x-a.x)[0];
-    if(!target)return;t.cd=st.rate;tdFire(i,t,st,target)});
+  TD.towers.forEach((t,i)=>{if(!t||t.type==='supply')return;t.cd-=dt;if(t.cd>0)return;const sx=TD_SLOTS[i][0],range=tdStats(t,i).range;
+    const target=TD.enemies.filter(e=>!e.dead&&!e.leak&&Math.abs(e.x-sx)<=range).sort((a,b)=>b.x-a.x)[0];
+    if(!target)return;if(t.type==='inferno'){if(t.focusId===target.id)t.focusN=Math.min(20,(t.focusN||0)+1);else{t.focusId=target.id;t.focusN=0}}const st=tdStats(t,i);t.cd=st.rate;tdFire(i,t,st,target)});
   TD.enemies=TD.enemies.filter(e=>{if(e.dead||e.leak){e.el.remove();return false}
     e.el.style.left=e.x+'%';e.el.classList.toggle('slow',e.slow>0);e.el.classList.toggle('frozen',(e.frozen||0)>0);e.el.querySelector('s').style.width=Math.max(0,e.hp/e.max*100)+'%';return true});
   if(TD.life<=0){tdEnd();return}
@@ -1148,6 +1163,7 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
   else if(a==='dsave')act(saveDraw);
   else if(a==='del'){if(confirm('정말 계정을 삭제할까요? 기록과 포인트가 모두 지워지고 되돌릴 수 없어요.'))act(async()=>{await Store.deleteAccount();R=null;G=null;M=null;authMode='login';go('home')})}
   else if(a==='code'){const i=document.getElementById('hc'),c=(i&&i.value||'').trim();if(i)i.value='';if(!c)return;act(async()=>{await Store.redeem(c);note='포인트를 받았어요.'})}
+  else if(a==='attend')act(async()=>{await Store.attend();note='출석 보상을 받았어요!'});
   else if(a==='game-quit'){if(G)finish();else if(M)endMeteor()}
   else if(a==='retry')route();
   else if(a==='resave'){await persist();route()}
@@ -1165,10 +1181,22 @@ function showNoticeBox(text,block){const d=document.createElement('div');d.id='t
   d.querySelector('.notice-body').textContent=text;
   document.body.appendChild(d);
   d.querySelector('#ntBtn').onclick=block?()=>{location.href=location.pathname+'?v='+Date.now()}:()=>d.remove()}
-async function bootApp(){let info=null;try{info=await Store.notice()}catch{}
-  if(info&&info.version&&info.version!==APP_VERSION){showNoticeBox((info.notice||'새 버전이 나왔어요.')+'\n\n업데이트를 받은 뒤에 이용할 수 있어요.',true);return}
+function inGame(){return /^#(td|game|meteor)$/.test(location.hash)}
+async function checkVersion(){let info=null;try{info=await Store.notice()}catch{return}
+  if(!info||!info.version||info.version===APP_VERSION)return info;
+  if(inGame())return null;
+  if(window.sessionStorage.getItem('taja.reloaded')!==info.version){
+    window.sessionStorage.setItem('taja.reloaded',info.version);
+    location.replace(location.pathname+'?v='+encodeURIComponent(info.version));return null}
+  if(!document.getElementById('tdNotice'))showNoticeBox((info.notice||'새 버전이 나왔어요.')+'\n\n업데이트를 받은 뒤에 이용할 수 있어요.',true);
+  return null}
+async function bootApp(){const info=await checkVersion();
+  if(info===null&&document.getElementById('tdNotice'))return;
   Store.init().then(route,route);
-  if(info&&info.notice&&window.localStorage.getItem('taja.notice')!==info.version){window.localStorage.setItem('taja.notice',info.version);showNoticeBox(info.notice,false)}}
+  if(info&&info.notice&&window.localStorage.getItem('taja.notice')!==info.version){window.localStorage.setItem('taja.notice',info.version);showNoticeBox(info.notice,false)}
+  setInterval(()=>{if(!document.getElementById('tdNotice'))checkVersion()},120000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkVersion()});
+  window.addEventListener('hashchange',()=>{if(!inGame())checkVersion()})}
 if(!SB.url||!SB.key){document.getElementById('app').innerHTML='<section class="card" style="margin-top:40px"><h3>서버 설정이 필요해요</h3><p class="mute">SB 설정에 Supabase 주소와 anon 키를 넣어 주세요.</p></section>'}else bootApp();
 </script>
 </body>
