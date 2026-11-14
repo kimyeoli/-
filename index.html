@@ -8,14 +8,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@500;700&display=swap" rel="stylesheet">
 <style>
-:root{--paper:#f6faf5;--grid:#e1eae3;--ink:#17233a;--mute:#5d6b7e;--line:#cfd9d2;--acc:#2748c7;--accd:#1b349a;--hl:#ffd84d;--ok:#12935f;--bad:#e5484d}
+:root{--paper:#f1f8fc;--grid:#d5e6f1;--ink:#17233a;--mute:#5d6b7e;--line:#c6d8e4;--acc:#2f6fae;--accd:#1f4f82;--hl:#ffd84d;--ok:#12935f;--bad:#e5484d}
 *{box-sizing:border-box;margin:0}
 body{font:500 16px/1.55 'Noto Sans KR',system-ui,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:var(--ink);min-height:100vh;
 background:linear-gradient(var(--grid) 1px,transparent 1px) 0 0/30px 30px,linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/30px 30px,var(--paper)}
 h1,h2,h3,.brand,.logo,.av,.big,.stat b,.hud b,.rk,.sc{font-family:'Black Han Sans','Noto Sans KR',sans-serif;font-weight:400;letter-spacing:-.01em}
 .top{display:flex;align-items:center;gap:24px;max-width:960px;margin:0 auto;padding:18px 20px}
 .brand{display:flex;align-items:center;gap:10px;font-size:24px;color:var(--ink);text-decoration:none}
-.logo{width:34px;height:34px;border-radius:99px;background:var(--acc);color:#fff;display:grid;place-items:center;font-size:20px;box-shadow:0 3px 0 var(--accd)}
+.logo{width:34px;height:34px;border-radius:99px;background:linear-gradient(145deg,#bfe6ff,#2f6fae 70%);color:#fff;border:2px solid #fff;text-shadow:0 1px 2px #1f4f8266;display:grid;place-items:center;font-size:20px;box-shadow:0 3px 0 var(--accd)}
 nav{display:flex;gap:4px;margin-right:auto}
 nav a{padding:8px 16px;border-radius:999px;color:var(--mute);text-decoration:none;font-weight:700}
 nav a.on{background:var(--ink);color:#fff}
@@ -112,8 +112,10 @@ tr.me td{background:#fff8d6}
 .tile:focus-visible{outline:3px solid var(--acc);outline-offset:3px}
 .spark{width:100%;max-width:520px;height:90px;margin-top:8px}
 .auth{display:grid;grid-template-columns:1.1fr 1fr;min-height:100vh}
-.hero{background:var(--acc);color:#fff;padding:44px 52px;display:flex;flex-direction:column;justify-content:space-between;gap:32px}
-.hero .brand{color:#fff}.hero .logo{background:var(--hl);color:var(--ink);box-shadow:0 3px 0 #c9a200}
+.hero{position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 110%,#ffffff 0,transparent 45%),linear-gradient(170deg,#1d3a60 0%,#3f6e9e 60%,#9cc7e4 100%);color:#fff;padding:44px 52px;display:flex;flex-direction:column;justify-content:space-between;gap:32px}
+.hero>*{position:relative;z-index:1}
+.hero:before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background-image:radial-gradient(3px 3px at 15% 20%,#fff 60%,transparent),radial-gradient(2px 2px at 60% 45%,#fff 60%,transparent),radial-gradient(2.5px 2.5px at 85% 80%,#fff 60%,transparent),radial-gradient(2px 2px at 35% 90%,#fff 60%,transparent),radial-gradient(1.5px 1.5px at 72% 12%,#fff 60%,transparent);background-size:260px 240px;opacity:.85;animation:snowDrift 12s linear infinite}
+.hero .brand{color:#fff}.hero .logo{background:#fff;color:#1f4f82;border-color:#bfe6ff;box-shadow:0 3px 0 #8fb7d6}
 .hero h1{font-size:clamp(44px,5.4vw,68px);line-height:1.15;margin-bottom:16px}
 .hero p{max-width:30ch;font-size:18px;opacity:.92}
 .kr{display:flex;gap:6px;margin-bottom:6px}
@@ -160,9 +162,12 @@ body.meteor-mode .game{position:fixed;inset:0;z-index:20;padding:0;border:0;bord
 body.meteor-mode .game>*{pointer-events:auto}
 body.meteor-mode .hud{position:absolute;z-index:8;top:14px;left:18px;right:18px;justify-content:flex-start;gap:clamp(12px,3vw,34px);margin:0;padding:10px 16px;border:1px solid #7184b866;border-radius:14px;background:#0a1226b8;backdrop-filter:blur(8px);color:#fff}
 body.meteor-mode .hud span{color:#b8c7e8} body.meteor-mode .hud b{font-size:clamp(23px,4vw,34px);min-width:1ch}
-body.meteor-mode .sky{position:absolute;inset:0;height:100%;margin:0;border:0;border-radius:0;overflow:hidden;background:radial-gradient(ellipse at 50% 80%,#253d69 0,transparent 44%),radial-gradient(circle at 18% 17%,#314574 0,transparent 32%),linear-gradient(180deg,#050916 0%,#101d3c 58%,#18294a 100%)}
-body.meteor-mode .sky:before{content:"";position:absolute;inset:0;background-image:radial-gradient(2px 2px at 12% 18%,#fff 60%,transparent),radial-gradient(1px 1px at 32% 9%,#fff 60%,transparent),radial-gradient(2px 2px at 73% 21%,#c8dcff 60%,transparent),radial-gradient(1px 1px at 88% 13%,#fff 60%,transparent),radial-gradient(1px 1px at 56% 33%,#fff 60%,transparent),radial-gradient(2px 2px at 42% 25%,#fff 60%,transparent);background-size:310px 210px;opacity:.9}
-body.meteor-mode .sky:after{content:"";position:absolute;left:0;right:0;bottom:0;height:22%;background:linear-gradient(180deg,transparent,#101a31 35%,#0b1326 100%);border-top:1px solid #7c91bb44}
+body.meteor-mode .sky{position:absolute;inset:0;height:100%;margin:0;border:0;border-radius:0;overflow:hidden;background:radial-gradient(ellipse at 50% 85%,#e9f3fb 0,transparent 46%),radial-gradient(circle at 80% 14%,#dbeaff55 0,transparent 30%),linear-gradient(180deg,#1d3358 0%,#3d6396 55%,#8fb6dc 100%)}
+body.meteor-mode .sky:before{content:"";position:absolute;inset:0;background-image:radial-gradient(2.5px 2.5px at 12% 18%,#fff 60%,transparent),radial-gradient(1.5px 1.5px at 32% 9%,#fff 60%,transparent),radial-gradient(3px 3px at 73% 21%,#f4faff 60%,transparent),radial-gradient(1.5px 1.5px at 88% 13%,#fff 60%,transparent),radial-gradient(2px 2px at 56% 33%,#fff 60%,transparent),radial-gradient(2.5px 2.5px at 42% 25%,#fff 60%,transparent);background-size:310px 210px;opacity:.9;animation:snowDrift 11s linear infinite}
+@keyframes snowfall{from{background-position:0 0}to{background-position:0 420px}}
+@keyframes snowDrift{0%{background-position:0 0}50%{background-position:-22px 210px}100%{background-position:-8px 420px}}
+@keyframes snowDriftFast{0%{background-position:0 0}100%{background-position:-30px 330px}}
+body.meteor-mode .sky:after{content:"";position:absolute;left:0;right:0;bottom:0;height:22%;background:linear-gradient(180deg,transparent,#e4f0fa 30%,#c3d9ec 100%);border-top:2px solid #ffffffcc;border-radius:50% 50% 0 0/14px 14px 0 0}
 body.meteor-mode .met{z-index:3;isolation:isolate;position:absolute;display:grid;place-items:center;width:104px;height:72px;min-width:0;min-height:0;padding:5px;background:transparent;border:0;border-radius:0;color:#fff1d5;font-size:clamp(13px,1.5vw,17px);line-height:1.2;font-weight:800;text-align:center;overflow:visible;text-shadow:0 2px 4px #24150f,0 0 9px #24150f;filter:drop-shadow(0 5px 5px #0009)}
 @keyframes meteorSlowSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 body.meteor-mode .met:before{content:"";position:absolute;z-index:-1;inset:0;background:radial-gradient(ellipse at 28% 22%,#e7c49a 0 5%,transparent 17%),radial-gradient(ellipse at 69% 65%,#493b36 0 7%,transparent 19%),radial-gradient(ellipse at 48% 43%,#b58b68 0 8%,transparent 22%),radial-gradient(ellipse at 75% 25%,#d6b18a 0 4%,transparent 15%),linear-gradient(145deg,#92745e 0%,#59483e 38%,#302b2b 72%,#171d29 100%);clip-path:polygon(17% 4%,39% 0,54% 8%,76% 3%,96% 24%,91% 49%,100% 68%,78% 93%,55% 88%,34% 100%,9% 81%,0 55%,8% 29%);border:0;box-shadow:inset -12px -10px 15px #080d19, inset 5px 4px 9px #f0c99a66;animation:meteorSlowSpin 11s linear infinite;transform-origin:50% 50%}
@@ -175,8 +180,8 @@ body.meteor-mode .met::before{border:0!important;outline:0!important;box-shadow:
 body.meteor-mode .met{outline:0!important;border:0!important;box-shadow:none!important}
 body.meteor-mode .base{z-index:5;left:50%;bottom:clamp(120px,16vh,160px);width:170px;height:145px;transform:translateX(-50%);display:flex;align-items:flex-end;justify-content:center}
 .meteor-village{position:absolute;z-index:2;left:0;right:0;bottom:0;height:24%;display:flex;align-items:flex-end;justify-content:space-around;gap:8px;padding:0 4%;opacity:.95}
-.meteor-village i{display:block;position:relative;width:clamp(42px,8vw,94px);height:clamp(48px,12vh,105px);background:linear-gradient(135deg,#34466a,#17233d);border:2px solid #65799c;border-bottom:0;border-radius:5px 5px 0 0}
-.meteor-village i:before{content:"";position:absolute;left:50%;top:-17px;transform:translateX(-50%);border-left:calc(clamp(42px,8vw,94px)/2) solid transparent;border-right:calc(clamp(42px,8vw,94px)/2) solid transparent;border-bottom:18px solid #536585}
+.meteor-village i{display:block;position:relative;width:clamp(42px,8vw,94px);height:clamp(48px,12vh,105px);background:linear-gradient(135deg,#8a6a52,#5a4333);border:2px solid #3b2b20;border-bottom:0;border-radius:5px 5px 0 0}
+.meteor-village i:before{content:"";position:absolute;left:50%;top:-17px;transform:translateX(-50%);border-left:calc(clamp(42px,8vw,94px)/2) solid transparent;border-right:calc(clamp(42px,8vw,94px)/2) solid transparent;border-bottom:18px solid #f5fbff}
 .meteor-village i:after{content:"";position:absolute;inset:24px 10px 8px;background:repeating-linear-gradient(90deg,#f6d88a 0 5px,transparent 5px 17px),repeating-linear-gradient(0deg,transparent 0 13px,#f6d88a 13px 19px,transparent 19px 29px);opacity:.65}
 .turret{position:absolute;z-index:4;bottom:5px;left:50%;width:104px;height:44px;transform:translateX(-50%);border:3px solid #17233a;border-radius:28px 28px 12px 12px;background:linear-gradient(#b7c7d9,#61758f);box-shadow:0 5px 0 #0b1326}
 .turret:before{content:"";position:absolute;width:58px;height:12px;left:48px;top:-17px;border:3px solid #17233a;border-radius:8px;background:#aebed0;transform:rotate(var(--ang, -90deg));transform-origin:4px 6px;transition:transform 0.1s ease-out}
@@ -252,11 +257,13 @@ body.meteor-mode .met.cur{filter:drop-shadow(0 0 7px #ffe08a)!important}
 .hc:focus-within,.hc:hover{opacity:1}
 .hc input{width:90px;font:12px 'Noto Sans KR',sans-serif;padding:3px 6px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--ink)}
 .hc button{font:12px 'Noto Sans KR',sans-serif;padding:3px 8px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--mute);cursor:pointer}
-body.td-mode{overflow:hidden;background:#0b1326;color:#eef3ff}
+body.td-mode{overflow:hidden;background:#e9f4fb;color:#eef3ff}
 body.td-mode .top{display:none}
 body.td-mode main{max-width:none;padding:0;margin:0}
 body.td-mode main>section{margin:0}
-.td-wrap{position:fixed;inset:0;z-index:20;overflow:hidden;background:radial-gradient(ellipse at 50% 55%,#1d2f55 0,transparent 60%),#0b1326}
+.td-wrap{position:fixed;inset:0;z-index:20;overflow:hidden;background:radial-gradient(ellipse at 50% 30%,#ffffff 0,transparent 55%),radial-gradient(ellipse at 80% 90%,#d6e9f7 0,transparent 50%),linear-gradient(180deg,#bcd9ee 0%,#e4f1fa 45%,#f7fbff 100%)}
+.td-wrap:before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background-image:radial-gradient(4px 4px at 10% 15%,#fff 45%,transparent 70%),radial-gradient(3px 3px at 27% 40%,#fff 45%,transparent 70%),radial-gradient(5px 5px at 45% 8%,#fff 45%,transparent 70%),radial-gradient(3px 3px at 63% 30%,#fff 45%,transparent 70%),radial-gradient(4px 4px at 80% 18%,#fff 45%,transparent 70%),radial-gradient(3px 3px at 92% 55%,#fff 45%,transparent 70%),radial-gradient(4px 4px at 36% 70%,#fff 45%,transparent 70%),radial-gradient(3px 3px at 72% 85%,#fff 45%,transparent 70%);background-size:420px 340px;opacity:.9;filter:blur(.4px);animation:snowDrift 13s linear infinite}
+.td-wrap:after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background-image:radial-gradient(1.5px 1.5px at 20% 30%,#fff 60%,transparent),radial-gradient(1.5px 1.5px at 55% 60%,#fff 60%,transparent),radial-gradient(2px 2px at 88% 40%,#fff 60%,transparent),radial-gradient(1px 1px at 40% 15%,#fff 60%,transparent),radial-gradient(1.5px 1.5px at 70% 92%,#fff 60%,transparent);background-size:230px 180px;opacity:.85;animation:snowDriftFast 6s linear infinite}
 .td-hud{position:absolute;z-index:8;top:10px;left:10px;right:10px;display:flex;align-items:center;gap:clamp(10px,2.4vw,26px);flex-wrap:wrap;padding:8px 14px;background:#0a1222e0;border:1px solid #7184b866;border-radius:14px}
 .td-hud>div{display:flex;align-items:baseline;gap:4px}
 .td-hud b{font-family:'Black Han Sans',sans-serif;font-weight:400;font-size:clamp(20px,3vw,30px);min-width:2ch}
@@ -265,19 +272,23 @@ body.td-mode main>section{margin:0}
 .td-hud .td-btn:first-of-type{margin-left:auto}
 .td-hud .td-btn:disabled{opacity:.4}
 .td-field{position:absolute;z-index:2;top:78px;left:0;right:0;bottom:150px}
-.td-lane{position:absolute;z-index:1;left:0;right:0;top:50%;height:64px;margin-top:-32px;background:repeating-linear-gradient(90deg,#26385e 0 26px,#2f4775 26px 52px);border-top:2px dashed #7184b8aa;border-bottom:2px dashed #7184b8aa}
+.td-lane{position:absolute;z-index:1;left:0;right:0;top:50%;height:96px;margin-top:-48px;background:radial-gradient(circle at 8% 30%,#4a3020aa 0 3px,transparent 4px),radial-gradient(circle at 22% 72%,#4a302088 0 2px,transparent 3px),radial-gradient(circle at 41% 42%,#4a302099 0 4px,transparent 5px),radial-gradient(circle at 58% 78%,#4a302077 0 2px,transparent 3px),radial-gradient(circle at 70% 26%,#e8cfa088 0 3px,transparent 4px),radial-gradient(circle at 90% 60%,#4a302088 0 3px,transparent 4px),radial-gradient(ellipse at 30% 50%,#6b4a2b33 0 30%,transparent 31%),linear-gradient(180deg,#6e4b2b 0,#8f6539 10%,#a77c4c 50%,#8f6539 90%,#6e4b2b 100%);border:0;box-shadow:0 0 0 2px #e9f3fa,0 0 0 4px #c2d6e5,inset 0 10px 14px #3d26153a,inset 0 -10px 14px #3d26153a}
 .td-base{position:absolute;z-index:4;right:2%;top:50%;transform:translateY(-50%)}
 .td-base .av{width:76px;height:76px;border:3px solid #17233a;box-shadow:0 0 0 4px #d7e6ff55}
-.td-slot{position:absolute;z-index:4;width:64px;height:64px;transform:translate(-50%,-50%);border-radius:50%;border:2px dashed #7184b8;background:#16233f;color:#b8c7e8;cursor:pointer;display:grid;place-items:center;padding:0}
-.td-slot:hover{border-color:#fff}
-.td-slot.built{border-style:solid;background:#1b2b4d}
+.td-slot{position:absolute;z-index:4;width:64px;height:64px;transform:translate(-50%,-50%);border-radius:50%;border:2px dashed #7fa3c7;background:#ffffffcc;color:#4a6a8c;cursor:pointer;display:grid;place-items:center;padding:0}
+.td-slot:hover{border-color:#2d5f8a}
+.td-slot.built{border-style:solid;background:#f4f9fd}
 .td-slot.sel{border-style:solid;border-color:#ffd84d;box-shadow:0 0 0 3px #ffd84d55}
+#tdband{position:absolute;inset:0;z-index:2;pointer-events:none}
+#tdband i{position:absolute;transform:translate(-50%,-50%);border-radius:50%;border:2px dashed #ffd84d;background:#ffd84d1f;pointer-events:none}
 .td-plus{font-size:26px;font-weight:700;opacity:.6}
 .td-tw{display:block;width:30px;height:30px;background:var(--c);border:2px solid #0b1326;border-radius:8px 8px 3px 3px;box-shadow:inset -4px -4px 0 #0003}
 .t-cannon .td-tw{border-radius:4px;height:24px}
 .t-ice .td-tw{border-radius:4px;transform:rotate(45deg) scale(.85)}
 .t-laser .td-tw{border-radius:50%;box-shadow:0 0 12px var(--c)}
-.td-lv{position:absolute;bottom:3px;left:0;right:0;text-align:center;color:#ffd84d;font-size:11px;letter-spacing:-2px}
+.td-lv{position:absolute;bottom:-11px;left:50%;transform:translateX(-50%);display:flex;gap:3px;padding:3px 5px;border-radius:6px;background:#0b1326cc;border:1px solid #7184b8;pointer-events:none;white-space:nowrap}
+.td-lv i{display:block;width:10px;height:6px;border-radius:2px;background:#33466e;border:1px solid #0b1326}
+.td-lv i.on{background:#ffd84d;border-color:#fff2a8;box-shadow:0 0 4px #ffd84d88}
 #tdens{position:absolute;inset:0;z-index:3;pointer-events:none}
 .td-en{position:absolute;top:50%;width:34px;height:34px;transform:translate(-50%,-50%);transition:none}
 .td-en i{display:block;width:100%;height:100%;border-radius:50% 50% 40% 40%;background:#ff8fa8;border:2px solid #17233a;box-shadow:inset -4px -5px 0 #0002}
@@ -312,10 +323,14 @@ body.td-mode main>section{margin:0}
 .td-slot .td-tw{display:block;width:56px;height:56px;background:none;border:0;border-radius:0;box-shadow:none;transform:none;transition:transform .12s}
 .td-slot .td-tw svg{width:100%;height:100%;display:block;overflow:visible}
 .td-slot .td-tw.shoot{transform:scale(.92) translateY(2px)}
-.td-slot.built{background:radial-gradient(circle at 50% 40%,#2a3d66,#16233f 70%);border-style:solid;border-color:#0b1326;box-shadow:0 4px 0 #0b1326}
+.td-slot.built{background:radial-gradient(circle at 50% 40%,#ffffff,#dcebf7 70%);border-style:solid;border-color:#5b7a99;box-shadow:0 4px 0 #5b7a99}
 #tdfxl{position:absolute;inset:0;z-index:6;pointer-events:none;overflow:visible}
 .td-proj{position:absolute;z-index:7;pointer-events:none}
-.p-arrow{width:26px;height:5px;border-radius:3px;background:linear-gradient(90deg,#6b4226,#c8915c);border:2px solid #17233a;box-sizing:content-box;margin-top:-4px}
+.p-blaster{width:7px;height:7px;border-radius:50%;background:#ffd08a;border:1.5px solid #17233a;box-shadow:0 0 8px #ff9f43}
+.p-arrow{width:16px;height:2px;margin-top:-1px;background:#6b4226;border-radius:1px;box-shadow:0 0 0 .5px #17233a55}
+.p-arrow:before{content:"";position:absolute;right:-6px;top:-3px;width:0;height:0;border-left:6px solid #d5dde6;border-top:4px solid transparent;border-bottom:4px solid transparent;filter:drop-shadow(0 0 .5px #17233a)}
+.p-arrow:after{content:"";position:absolute;left:-1px;top:-3px;width:0;height:0;border-right:4px solid #f4f1e8;border-top:3px solid transparent;border-bottom:3px solid transparent}
+.p-mortar{width:26px;height:26px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#c9a06a,#5e3b20 70%);border:3px solid #17233a;box-shadow:0 5px 0 #0006}
 .p-cannon{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#aab4c4,#38404f 70%);border:3px solid #17233a;box-shadow:0 3px 0 #0006}
 .p-ice{width:16px;height:16px;background:#bfeeff;border:3px solid #17233a;border-radius:3px;box-shadow:0 0 10px #7fd8ff}
 .td-boom{position:absolute;z-index:6;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(ellipse at center,#ffe08acc 0,#ff8a3d88 45%,#ff5d2a22 75%,transparent 80%);border:3px dashed #ff8a3d;box-shadow:0 0 18px #ff8a3d66;animation:tdboom .5s ease-out forwards}
@@ -369,7 +384,7 @@ body.td-mode main>section{margin:0}
 <div id="app"></div>
 <script>
 const SB={url:'https://peuvixydcgmfgfejdcgn.supabase.co',key:'sb_publishable_LEpZWlWGxSgDkrVGxQERpg_Pq42SbZM'};
-const APP_VERSION='2.5.1';
+const APP_VERSION='2.5.3';
 
 const LS=(()=>{const m={};let ok=true;
   try{window.localStorage.setItem('__t','1');window.localStorage.removeItem('__t')}catch{ok=false}
@@ -524,6 +539,8 @@ const SupaStore=(()=>{
     async attend(){ME=await rpc('tadak_attend',{p_token:tok(),p_ver:APP_VERSION})},
     async chatSend(text){await rpc('tadak_chat_send',{p_token:tok(),p_text:text,p_ver:APP_VERSION})},
     async chatList(){return rpc('tadak_chat_list',{p_ver:APP_VERSION,p_limit:60})},
+    async adminList(){return rpc('tadak_admin_list',{p_token:tok(),p_ver:APP_VERSION})},
+    async adminTake(k,pts,item){await rpc('tadak_admin_take',{p_token:tok(),p_target:k,p_pts:pts||0,p_item:item||null,p_ver:APP_VERSION})},
     async clanInfo(){return rpc('tadak_clan_info',{p_token:tok(),p_ver:APP_VERSION})},
     async clanCreate(n){ME=await rpc('tadak_clan_create',{p_token:tok(),p_name:n,p_ver:APP_VERSION})},
     async clanJoin(id){ME=await rpc('tadak_clan_join',{p_token:tok(),p_id:id,p_ver:APP_VERSION})},
@@ -679,6 +696,16 @@ function clanHTML(c){if(!c)return '';
     return `<section class="card" style="margin-top:14px"><h3>클랜: ${esc(c.clan.name)}</h3><p class="mute small">${c.clan.leader?'내가 클랜장이에요. 나가면 클랜이 해산돼요.':'클랜원이에요.'} · ${c.clan.members.length}명</p><p class="small" style="font-weight:700">클랜원은 게임 포인트가 10% 더 올라가요.</p><p class="mute small">${mem}</p><p style="margin-top:10px"><button class="btn" data-a="clan-leave">클랜 나가기</button></p></section>`}
   const list=(c.list||[]).map(x=>`<div class="mk-row"><span>${esc(x.name)}</span><span class="mute small">${x.count}명</span><span><button class="btn" data-a="clan-join" data-v="${x.id}">가입</button></span></div>`).join('')||'<p class="mute">아직 클랜이 없어요.</p>';
   return `<section class="card" style="margin-top:14px"><h3>클랜</h3><p class="mute small">클랜을 만드는 데 500포인트가 들어요.</p><div class="row" style="justify-content:flex-start;gap:8px;flex-wrap:wrap"><input id="clan-name" maxlength="10" placeholder="클랜 이름 (2~10글자)" style="padding:8px;border:2px solid var(--ink);border-radius:10px"><button class="btn pri" data-a="clan-create">만들기</button></div><div style="margin-top:12px">${list}</div></section>`}
+let ADM_LIST=[];
+async function vAdmin(){const msg=note;note='';let list;
+  try{list=await Store.adminList()}catch(e){return layout(`<section class="card"><h3>관리자</h3><p class="mute">${esc(e.message)}</p></section>`,'')}
+  ADM_LIST=list||[];
+  const rows=ADM_LIST.map((x,i)=>{const own=x.own||[];
+    const items=own.map(id=>esc((TALISMANS[id]||{}).name||id)).join(', ')||'없음';
+    const opts=own.map(id=>`<option value="${esc(id)}">${esc((TALISMANS[id]||{}).name||id)}</option>`).join('');
+    return `<section class="card" style="margin-top:12px"><h3>${esc(x.nick)} <small class="mute">(${esc(x.k)})</small></h3><p>포인트 <b>${x.pts}</b> · 보유: ${items}</p>
+      <div class="row" style="justify-content:flex-start;gap:8px;flex-wrap:wrap"><input type="number" min="1" id="ap-${i}" placeholder="뺄 포인트" style="width:130px;padding:6px;border:2px solid var(--ink);border-radius:8px"><button class="btn" data-a="adm-pts" data-v="${i}">포인트 빼기</button>${own.length?`<select id="ai-${i}" style="padding:6px;border-radius:8px">${opts}</select><button class="btn" data-a="adm-item" data-v="${i}">아이템 빼기</button>`:''}</div></section>`}).join('');
+  return layout(`<section class="rhead"><h2>관리자 모드</h2><p class="mute">유저의 포인트와 아이템을 확인하고 뺄 수 있어요.</p></section>${msg?`<p style="font-weight:700">${esc(msg)}</p>`:''}${rows||'<p class="mute">유저가 없어요.</p>'}`,'')}
 async function vMarket(){const msg=note;note='';let d;
   try{d=await Store.marketInfo()}catch(e){return layout(`<section class="card"><h3>암시장</h3><p class="mute">${esc(e.message)}</p></section>`,'')}
   const u=Store.me(),own=u.own||[];
@@ -729,8 +756,10 @@ const TALISMANS={
   tal04:{name:'폭풍 부적',desc:'타워 공격력 +5%'},
   tal05:{name:'절약 부적',desc:'타워 설치 가격 -5%'}};
 function talBonus(){const o=(Store.me()||{}).own||[];return{gold:o.includes('tal01')?150:0,life:o.includes('tal02')?3:0,range:o.includes('tal03')?1:0,dmgMul:o.includes('tal04')?1.05:1,costMul:o.includes('tal05')?0.95:1}}
+document.addEventListener('paste',e=>{if(e.target&&e.target.matches&&e.target.matches('#in,#tdi,#chat-in'))e.preventDefault()});
+document.addEventListener('drop',e=>{if(e.target&&e.target.matches&&e.target.matches('#in,#tdi,#chat-in'))e.preventDefault()});
 let logoTaps=[];
-document.addEventListener('click',e=>{if(!e.target.closest||!e.target.closest('.logo'))return;const now=Date.now();logoTaps=logoTaps.filter(t=>now-t<4000);logoTaps.push(now);if(logoTaps.length>=10){logoTaps=[];setTimeout(()=>{location.hash='#market'},0)}});
+document.addEventListener('click',e=>{if(!e.target.closest||!e.target.closest('.logo'))return;const now=Date.now();logoTaps=logoTaps.filter(t=>now-t<10000);logoTaps.push(now);if(logoTaps.length>=10){logoTaps=[];setTimeout(()=>{location.hash='#market'},0)}});
 let CHAT=[],chatTimer=0;
 const ChatStore = {
   get: () => CHAT,
@@ -940,8 +969,9 @@ function playTypeSound(kind){try{const AC=window.AudioContext||window.webkitAudi
   }}catch{}}
 function softKeySound(){playTypeSound(typeSoundId())}
 
-document.addEventListener('keydown',e=>{const t=e.target;if(t&&t.tagName==='INPUT'&&t.type!=='password'&&!e.isComposing&&e.key.length===1&&!e.ctrlKey&&!e.altKey&&!e.metaKey)softKeySound()});
-document.addEventListener('compositionend',e=>{const t=e.target;if(t&&t.tagName==='INPUT'&&t.type!=='password')softKeySound()});
+// 키 누를 때마다 소리. 한글(IME) 입력은 keydown이 isComposing=true / keyCode 229로 오므로 함께 처리.
+let lastKeySnd=0;
+document.addEventListener('keydown',e=>{const t=e.target;if(!(t&&t.tagName==='INPUT'&&t.type!=='password'))return;if(e.ctrlKey||e.altKey||e.metaKey)return;const ime=e.isComposing||e.keyCode===229||e.key==='Process'||e.key==='Unidentified';if(!ime&&e.key.length!==1)return;const now=performance.now();if(now-lastKeySnd<15)return;lastKeySnd=now;softKeySound()});
 function bindMeteor(){const inp=$('#in');inp.focus();
   $('.game').addEventListener('click',()=>inp.focus());
   inp.addEventListener('compositionstart',()=>M&&(M.comp=true));
@@ -956,12 +986,14 @@ async function endMeteor(){cancelAnimationFrame(raf);const g=M;M=null;
 
 /* ===== 타워 디펜스 ===== */
 const TD_T={
-  arrow:{name:'화살 타워',cost:60,unlock:1,range:14,rate:.7,dmg:7.8,col:'#7bd35a',desc:'빠르게 쏘는 기본 타워예요.'},
-  cannon:{name:'대포 타워',cost:144,unlock:3,range:12,rate:1.6,dmg:14,splash:4,col:'#ffb347',desc:'맞은 적 주변까지 피해를 줘요.'},
-  ice:{name:'얼음 타워',cost:120,unlock:5,range:13,rate:1.2,dmg:3,slow:1,col:'#7fd8ff',desc:'맞은 적을 2초 동안 느리게 해요.'},
-  laser:{name:'레이저 타워',cost:312,unlock:8,range:24,rate:1,dmg:40,pierce:5,col:'#ff5d8f',desc:'여러 적을 한꺼번에 관통해요.'},elec:{name:'일렉 타워',cost:420,unlock:10,range:16,rate:.9,dmg:30,chain:3,col:'#ffe94d',desc:'공격하면 3체인 번개로 주변 적을 함께 공격해요.'},inferno:{name:'인페르노 타워',cost:500,unlock:12,range:14,rate:.5,dmg:4,col:'#ff7a2e',desc:'같은 적을 계속 맞힐수록 공격력이 올라가요 (최대 4배).'},supply:{name:'서플라이 타워',cost:360,unlock:6,range:0,rate:1,dmg:0,col:'#7fe0c0',desc:'양옆 타워의 공격력과 공격 속도를 1.5배로 올려요.',support:true}};
-const TD_SLOTS=[[10,22],[18,22],[26,22],[34,22],[42,22],[50,22],[58,22],[66,22],[74,22],[82,22],[14,78],[22,78],[30,78],[38,78],[46,78],[54,78],[62,78],[70,78],[78,78],[86,78]];
+  arrow:{name:'화살 타워',cost:60,unlock:1,range:14,rate:.7,dmg:7,col:'#7bd35a',desc:'빠르게 쏘는 기본 타워예요.'},
+  blaster:{name:'블래스터 타워',cost:75,unlock:2,range:8,rate:.1,dmg:1.44,col:'#ff9f43',desc:'공격 속도가 아주 빠르지만 피해가 낮고 사거리가 짧아요.'},
+  cannon:{name:'대포 타워',cost:120,unlock:3,range:12,rate:1.6,dmg:14,splash:4,col:'#ffb347',desc:'맞은 적 주변까지 피해를 줘요.'},
+  ice:{name:'얼음 타워',cost:120,unlock:5,range:13,rate:1.2,dmg:5,slow:1,splash:3,col:'#7fd8ff',desc:'맞은 적과 주변 적을 2초 동안 느리게 해요 (범위 3).'},
+  laser:{name:'레이저 타워',cost:400,unlock:8,range:24,rate:1,dmg:26,pierce:3,col:'#ff5d8f',desc:'사거리 안의 적 최대 3명을 관통해요.'},elec:{name:'일렉 타워',cost:500,unlock:10,range:16,rate:.9,dmg:24,chain:5,col:'#ffe94d',desc:'공격하면 최대 5체인 번개로 근처(거리 10 이내) 적을 연쇄 공격해요. 체인마다 피해가 0.8배로 줄고, 근처에 적이 없으면 끊어져요.'},inferno:{name:'인페르노 타워',cost:500,unlock:12,range:14,rate:.5,dmg:6,col:'#ff7a2e',desc:'최대 3명을 동시에 공격해요. 같은 적을 계속 맞힐수록 공격력이 올라가요 (최대 4배).'},supply:{name:'서플라이 타워',cost:360,unlock:6,range:0,rate:1,dmg:0,col:'#7fe0c0',desc:'양옆 타워의 공격력과 공격 속도를 1.5배로 올려요.',support:true},mortar:{name:'박격포 타워',cost:600,unlock:9,range:60,minRange:20,rate:3,dmg:120,splash:9,col:'#a06b3e',desc:'20 거리 안의 적은 못 쏘지만, 먼 거리의 적을 광역으로 강하게 맞혀요. 느려요.'}};
+const TD_SLOTS=[[10,38],[18,38],[26,38],[34,38],[42,38],[50,38],[58,38],[66,38],[74,38],[82,38],[14,62],[22,62],[30,62],[38,62],[46,62],[54,62],[62,62],[70,62],[78,62],[86,62]];
 const TD_ART={
+  blaster:`<svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="59" rx="20" ry="4" fill="#000" opacity=".25"/><rect x="18" y="38" width="28" height="20" rx="5" fill="#ffb36b" stroke="${INK}" stroke-width="3"/><rect x="26" y="22" width="12" height="18" fill="#8a5a34" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><rect x="22" y="10" width="4" height="16" rx="2" fill="#c3ccda" stroke="${INK}" stroke-width="2.5"/><rect x="30" y="8" width="4" height="18" rx="2" fill="#c3ccda" stroke="${INK}" stroke-width="2.5"/><rect x="38" y="10" width="4" height="16" rx="2" fill="#c3ccda" stroke="${INK}" stroke-width="2.5"/><circle cx="32" cy="47" r="4" fill="#fff3c4" stroke="${INK}" stroke-width="2"/></svg>`,
   arrow:`<svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="59" rx="20" ry="4" fill="#000" opacity=".25"/><path d="M18 58L21 30H43L46 58Z" fill="#c8915c" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><path d="M22 44H42M21.5 36.5H42.5" stroke="#8a5a34" stroke-width="2.5" opacity=".7"/><rect x="27" y="45" width="10" height="13" rx="2" fill="${INK}"/><path d="M14 30L32 9L50 30Z" fill="#e5484d" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><path d="M19 27H45" stroke="${INK}" stroke-width="3" stroke-linecap="round"/><path d="M32 9V3" stroke="${INK}" stroke-width="2.5"/><path d="M32 3H40L37 6.5L40 10H32Z" fill="#ffd84d" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/><path d="M22 23Q32 20 42 23" stroke="#fff" stroke-width="2" opacity=".5" fill="none" stroke-linecap="round"/></svg>`,
   cannon:`<svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="59" rx="22" ry="4" fill="#000" opacity=".25"/><path d="M14 58V36Q14 32 18 32H46Q50 32 50 36V58Z" fill="#a9b4c6" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><path d="M10 32H54V23H48V27H42V23H36V27H28V23H22V27H16V23H10Z" fill="#c3ccda" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><path d="M21 44H43M22 51H42" stroke="#7d8aa0" stroke-width="2.5" stroke-linecap="round"/><g transform="rotate(12 32 31)"><rect x="28" y="26" width="24" height="10" rx="4" fill="#4a5568" stroke="${INK}" stroke-width="3"/><rect x="48" y="23" width="7" height="16" rx="2" fill="#2d3748" stroke="${INK}" stroke-width="2.5"/></g><circle cx="32" cy="31" r="7" fill="#4a5568" stroke="${INK}" stroke-width="3"/><circle cx="32" cy="31" r="2.5" fill="#ffb347"/><path d="M19 38Q22 35 25 36" stroke="#fff" stroke-width="2" opacity=".5" fill="none" stroke-linecap="round"/></svg>`,
   ice:`<svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="59" rx="20" ry="4" fill="#000" opacity=".25"/><path d="M16 58L20 50H44L48 58Z" fill="#9edcff" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><path d="M32 4L44 28L40 50H24L20 28Z" fill="#7fd8ff" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><path d="M32 4L38 28H26Z" fill="#dff6ff"/><path d="M26 30L32 22L38 30L32 40Z" fill="#3aa8ff" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/><path d="M24 26L28 14" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".8"/><path d="M14 40L20 34L22 44Z" fill="#bfeeff" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/><path d="M50 40L44 34L42 44Z" fill="#bfeeff" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/></svg>`,
@@ -985,11 +1017,21 @@ const TD_SK={
 TD_ART.elec=`<svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="59" rx="20" ry="4" fill="#000" opacity=".25"/><path d="M22 58L25 34H39L42 58Z" fill="#5b4bb0" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><rect x="20" y="30" width="24" height="6" rx="3" fill="#3a2f80" stroke="${INK}" stroke-width="3"/><path d="M28 44L36 40M28 50L36 46" stroke="#ffe94d" stroke-width="2.5" stroke-linecap="round"/><circle cx="32" cy="20" r="11" fill="#ffe94d" opacity=".4"/><circle cx="32" cy="20" r="7" fill="#fff6a8" stroke="${INK}" stroke-width="3"/><path d="M30 6L26 16H33L29 26" fill="none" stroke="#ffe94d" stroke-width="2.5" stroke-linejoin="round"/></svg>`;
 TD_ART.inferno=`<svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="59" rx="20" ry="4" fill="#000" opacity=".25"/><path d="M20 58L24 36H40L44 58Z" fill="#6b5a5a" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><path d="M32 6C40 18 46 22 44 32C42 40 36 40 32 34C34 30 28 26 26 32C22 26 24 14 32 6Z" fill="#ff7a2e" stroke="${INK}" stroke-width="2.5" stroke-linejoin="round"/><path d="M32 18C35 24 38 26 37 32C36 36 31 37 30 33C31 30 28 28 28 24C30 22 31 20 32 18Z" fill="#ffe94d"/></svg>`;
 TD_ART.supply=`<svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="59" rx="20" ry="4" fill="#000" opacity=".25"/><path d="M20 58L24 40H40L44 58Z" fill="#4fb8a0" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><circle cx="32" cy="30" r="12" fill="#bff5e2" stroke="${INK}" stroke-width="3"/><path d="M32 22V38M26 28L32 22L38 28" fill="none" stroke="${INK}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 36H19M45 36H52" stroke="#7fe0c0" stroke-width="3" stroke-linecap="round"/></svg>`;
+TD_ART.mortar=`<svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="59" rx="22" ry="4" fill="#000" opacity=".25"/><path d="M16 58L20 40H44L48 58Z" fill="#8b5a33" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/><path d="M22 50H42" stroke="#5e3b20" stroke-width="2.5" stroke-linecap="round"/><g transform="rotate(-30 32 40)"><rect x="26" y="14" width="12" height="26" rx="5" fill="#a06b3e" stroke="${INK}" stroke-width="3"/><ellipse cx="32" cy="14" rx="7" ry="3" fill="#2d3748" stroke="${INK}" stroke-width="2.5"/></g><circle cx="32" cy="40" r="6" fill="#c9a06a" stroke="${INK}" stroke-width="3"/><path d="M20 30Q24 26 28 28" stroke="#fff" stroke-width="2" opacity=".5" fill="none" stroke-linecap="round"/></svg>`;
 let TD=null,tdRaf=0,tdLast=0;
 const tdUpCost=t=>Math.round(TD_T[t.type].cost*.8*t.lvl*(TD&&TD.up?TD.up.discount:1));
 function tdSupplyCount(i){if(i==null||!TD)return 0;const [x,y]=TD_SLOTS[i];let n=0;TD.towers.forEach((o,j)=>{if(o&&o.type==='supply'&&j!==i&&TD_SLOTS[j][1]===y&&Math.abs(TD_SLOTS[j][0]-x)<=8.5)n++});return Math.min(2,n)}
-const TD_UPM={cannon:[1,1.5,2.2,3,4]};
-function tdStats(t,i){const s=TD_T[t.type],m=(TD_UPM[t.type]||[1,1.8,3,4.5,6.5])[t.lvl-1]||1,r=[1,.85,.7,.6,.5][t.lvl-1]||.5;const sup=tdSupplyCount(i),sb=Math.pow(1.5,sup);let dmg=s.dmg*m*(TD&&TD.up?TD.up.dmg:1)*sb*(TD&&TD.tal?TD.tal.dmgMul:1);if(t.type==='inferno')dmg*=1+0.15*(t.focusN||0);return{dmg:Math.round(dmg*10)/10,rate:s.rate*r*(TD&&TD.up?TD.up.rate:1)/sb,range:s.range+([0,2,4,6,8][t.lvl-1]??8)+(TD&&TD.up?TD.up.range:0)+(TD&&TD.tal?TD.tal.range:0),splash:s.splash,pierce:s.pierce,slow:s.slow,chain:s.chain||0}}
+const CURVE_SOFT=[1,1.5,2.2,3,4];
+// 레이저: 기본 곡선에서 3레벨부터 증가분을 0.6배 (1 → 1.8 → 2.52 → 3.42 → 4.62)
+// 화살: 2레벨까지 대포 곡선, 3레벨부터 크게 낮춤 / 인페르노: 기본 공격력 상향 + 완만한 곡선
+// 사거리 판정: 타워와 적의 실제 거리(px)가 사거리(화면 폭 %) 이내면 공격 가능. 원 표시와 동일.
+function tdInRange(e,sx,sy,range){const [W,H]=tdVis();const dx=(e.x-sx)/100*W,dy=(50-sy)/100*H;return Math.hypot(dx,dy)<=range/100*W}
+const TD_UPM={cannon:CURVE_SOFT,arrow:[1,1.5,1.7,1.9,2.1],inferno:[1,1.4,1.9,2.5,3.2],elec:CURVE_SOFT,mortar:CURVE_SOFT,blaster:[1,1.2,1.4,1.6,1.8],laser:[1,1.8,2.52,3.42,4.62]};
+// 공속 상승폭을 타워별로 따로 지정 (기본: [1,.85,.7,.6,.5])
+const TD_RPM={blaster:[1,.9,.8,.7,.6]};
+// 레벨업 사거리 증가 (기본: [0,2,4,6,8]). 블래스터는 사거리 고정
+const TD_RADD={blaster:[0,0,0,0,0]};
+function tdStats(t,i){const s=TD_T[t.type],m=(TD_UPM[t.type]||[1,1.8,3,4.5,6.5])[t.lvl-1]||1,r=(TD_RPM[t.type]||[1,.85,.7,.6,.5])[t.lvl-1]||.5;const sup=tdSupplyCount(i),sb=Math.pow(1.5,sup);let dmg=s.dmg*m*(TD&&TD.up?TD.up.dmg:1)*sb*(TD&&TD.tal?TD.tal.dmgMul:1);if(t.type==='inferno')dmg*=1+0.15*(t.focusN||0);return{dmg:Math.round(dmg*10)/10,rate:s.rate*r*(TD&&TD.up?TD.up.rate:1)/sb,range:s.range+((TD_RADD[t.type]||[0,2,4,6,8])[t.lvl-1]??8)+(TD&&TD.up?TD.up.range:0)+(TD&&TD.tal?TD.tal.range:0),splash:s.splash,pierce:s.pierce,slow:s.slow,chain:s.chain||0}}
 const TD_AUGMENTS=[{id:'dmg',icon:'⚔️',name:'강력한 무기',desc:'타워 공격력 +15%'},{id:'range',icon:'🔭',name:'망원 렌즈',desc:'타워 사거리 +2'},{id:'rate',icon:'⚡',name:'고속 장전',desc:'타워 공속 +15%'},{id:'discount',icon:'🏷️',name:'건축가',desc:'설치/업글 비용 -10% (최대 -30%)'},{id:'chain',icon:'🔗',name:'연쇄 공격',desc:'탄이 맞으면 15% 확률로 근처 적에게 절반 피해 (최대 45%)'},{id:'skill',icon:'🌟',name:'스킬 위력',desc:'얼음 +1초, 번개 피해 +10%'},{id:'refund',icon:'💰',name:'환급 장인',desc:'타워 판매 환급 +20%'},{id:'gold',icon:'🪙',name:'대부호',desc:'즉시 100 골드 획득'},{id:'crit',icon:'🎯',name:'정밀 사격',desc:'타워 공격 10% 확률로 2배 피해 (최대 40%)'},{id:'splash',icon:'💥',name:'폭발 반경',desc:'대포 타워 폭발 범위 +2'},{id:'pierce',icon:'🔱',name:'관통 강화',desc:'레이저 타워 관통 대상 +1'},{id:'slowDur',icon:'🧊',name:'빙결 연장',desc:'얼음 둔화 지속 +1초'},{id:'interest',icon:'🏦',name:'복리',desc:'웨이브 클리어 보상 +5% 골드 (최대 15%)'},{id:'word',icon:'✏️',name:'타자 장인',desc:'낱말 하나당 골드 +1'}];
 function tdRenderAugmentUI(){const cards=shuffle(TD_AUGMENTS.slice()).slice(0,3);let layer=document.getElementById('tdUpgradeScreen');if(!layer){layer=document.createElement('div');layer.className='upgrade-screen';layer.id='tdUpgradeScreen';$('.td-wrap').appendChild(layer)}layer.innerHTML=`<div class="upgrade-panel"><h2>증강 선택</h2><p>3웨이브마다 주어지는 특수 능력 (1개만 선택 가능)</p><div class="upgrade-cards">${cards.map(c=>`<button class="upgrade-card" data-a="td-aug" data-v="${c.id}"><span class="emoji">${c.icon}</span><b>${c.name}</b><span>${c.desc}</span></button>`).join('')}</div><div style="margin-top:16px"><button class="btn" data-a="td-reroll" ${TD.reroll<=0?'disabled':''}>새로고침 (남은 횟수: ${TD.reroll})</button></div></div>`;}
 function tdShowUpgradeShop(){if(!TD||TD.shopOpen)return;TD.shopOpen=true;TD.shopShown=TD.wave-1;TD.reroll=1;$('#tdi')?.blur();tdRenderAugmentUI();}
@@ -1000,6 +1042,14 @@ function tdRerollAugment(){if(!TD||!TD.shopOpen||TD.reroll<=0)return;TD.reroll--
 function tdCloseAugmentShop(){if(!TD)return;$('#tdUpgradeScreen')?.remove();TD.shopOpen=false;$('#tdi')?.focus();}
 function tdQueue(w){const n=4+w*2,q=[];for(let i=0;i<n;i++)q.push({boss:false,hp:8*(8+3*w),sp:(3+w*.2+Math.random())*.8});
   if(w%5===0)q.push({boss:true,hp:8*(8+3*w)*10,sp:(2.2+w*.1)/2*.8});return q}
+// 기지 히트박스 설정 (px)
+// offset: 0 = 적의 오른쪽 끝이 기지 왼쪽 끝에 닿았을 때 공격 판정
+//         양수 = 기지 안쪽으로 더 들어와야 판정 (관대하게), 음수 = 더 일찍 판정 (엄격하게)
+const TD_BASE_HIT={offset:0};
+// 화면 크기에 맞춰 기지의 실제 위치에서 적이 닿는 x(%)를 계산
+function tdLeakX(e){const f=$('#tdf'),av=$('.td-base .av'),bs=$('.td-base');if(!f||!av||!bs)return 88;
+  const W=f.clientWidth||600,baseLeft=bs.offsetLeft+av.offsetLeft,half=e.boss?32:17;
+  return Math.max(10,Math.min(100,(baseLeft+TD_BASE_HIT.offset-half)/W*100))}
 function tdEnemyEl(e){const d=document.createElement('div');d.className='td-en'+(e.boss?' boss':'');d.innerHTML='<i></i><s></s>';$('#tdens').appendChild(d);return d}
 function tdSay(msg){if(!TD)return;TD.msg=msg;TD.msgT=2.6}
 function tdStartWave(){TD.phase='wave';TD.queue=tdQueue(TD.wave);TD.st=.6;TD.reached=Math.max(TD.reached||0,TD.wave);
@@ -1034,27 +1084,30 @@ function tdKick(i){const tw=document.querySelector('#tds'+i+' .td-tw');if(!tw)re
 function tdFire(i,t,st,target){const sx=TD_SLOTS[i][0],sy=TD_SLOTS[i][1];
   const dmg=()=>Math.random()<TD.up.crit?st.dmg*2:st.dmg;
   const apply=()=>{const alive=TD.enemies.filter(e=>!e.dead&&!e.leak);
-    if(t.type==='cannon'){const r=st.splash+TD.up.splash;alive.filter(e=>Math.abs(e.x-target.x)<=r).forEach(e=>{const d=dmg();tdHit(e,e===target?d:d*.5)})}
-    else if(t.type==='laser'){const inR=alive.filter(e=>Math.abs(e.x-sx)<=st.range&&e!==target).sort((a,b)=>b.x-a.x);
+    if(t.type==='cannon'||t.type==='mortar'){const r=st.splash+TD.up.splash;alive.filter(e=>Math.abs(e.x-target.x)<=r).forEach(e=>{const d=dmg();tdHit(e,e===target?d:d*.5)})}
+    else if(t.type==='laser'){const inR=alive.filter(e=>tdInRange(e,sx,sy,st.range)&&e!==target).sort((a,b)=>b.x-a.x);
       [target,...inR].slice(0,st.pierce+TD.up.pierce).forEach(e=>tdHit(e,dmg()))}
-    else if(t.type==='elec'){tdHit(target,dmg());const ch=alive.filter(x=>x!==target&&!x.dead&&Math.abs(x.x-target.x)<=25).sort((a,b)=>Math.abs(a.x-target.x)-Math.abs(b.x-target.x)).slice(0,st.chain);ch.forEach(x=>{tdHit(x,st.dmg*.6);tdBolt(target.x,50,x.x,50)})}
+    else if(t.type==='elec'){tdHit(target,dmg());const hit=new Set([target]);let cur=target,mul=1;
+      for(let k=0;k<st.chain;k++){mul*=.8;const nx=alive.filter(x=>!hit.has(x)&&!x.dead&&Math.abs(x.x-cur.x)<=10).sort((a,b)=>Math.abs(a.x-cur.x)-Math.abs(b.x-cur.x))[0];if(!nx)break;hit.add(nx);tdHit(nx,st.dmg*mul);tdBolt(cur.x,50,nx.x,50);cur=nx}}
+    else if(t.type==='inferno'){const others=alive.filter(e=>e!==target&&tdInRange(e,sx,sy,st.range)).sort((a,b)=>b.x-a.x).slice(0,2);[target,...others].forEach(e=>tdHit(e,dmg()))}
+    else if(st.slow){const r=st.splash||0;alive.filter(e=>Math.abs(e.x-target.x)<=r).forEach(e=>{if(st.dmg>0)tdHit(e,dmg());e.slow=2+TD.up.slowDur})}
     else{tdHit(target,dmg());if(st.slow)target.slow=2+TD.up.slowDur;if(Math.random()<TD.up.chain){const nb=alive.filter(x=>x!==target&&!x.dead).sort((a,b)=>Math.abs(a.x-target.x)-Math.abs(b.x-target.x))[0];if(nb&&Math.abs(nb.x-target.x)<=8)tdHit(nb,st.dmg*.5)}}};
   tdKick(i);
   if(t.type==='laser'||t.type==='elec'){(t.type==='elec'?tdBolt:tdBeam)(sx,sy,target.x,50);apply();return}
-  const flight=t.type==='cannon'?.4:.2;
+  const flight=t.type==='mortar'?.7:t.type==='cannon'?.4:.2;
   tdProj(t.type,sx,sy,target.x,50,flight);
   (TD.impacts=TD.impacts||[]).push({t:flight,fn:apply,type:t.type,x:target.x,r:st.splash+TD.up.splash,col:TD_T[t.type].col})}
 function tdTick(ts){if(!TD||TD.ended)return;const dt=Math.min(.05,(ts-(tdLast||ts))/1000);tdLast=ts;
-  if(TD.shopOpen||TD.prep){tdRaf=requestAnimationFrame(tdTick);return;}
+  if(TD.shopOpen||TD.prep||TD.paused){tdRaf=requestAnimationFrame(tdTick);return;}
   if(TD.msgT>0)TD.msgT-=dt;
   if(TD.phase==='break'){TD.breakT-=dt;if(TD.breakT<=0){tdStartWave()}}
   else if(TD.queue.length){TD.st-=dt;if(TD.st<=0){const q=TD.queue.shift();const e={id:TD.nextId++,x:0,hp:q.hp,max:q.hp,sp:q.sp,slow:0,boss:q.boss};e.el=tdEnemyEl(e);TD.enemies.push(e);TD.st=Math.max(.45,1.2-TD.wave*.04)}}
   for(const e of TD.enemies){if(e.dead||e.leak)continue;e.slow=Math.max(0,e.slow-dt);e.frozen=Math.max(0,(e.frozen||0)-dt);e.x+=e.sp*((e.frozen||0)>0?0:e.slow>0?.5:1)*dt;
-    if(e.x>=88){e.leak=true;TD.life-=Math.max(0,(e.boss?3:1)-TD.up.guard);tdSay('기지가 공격받았어요!')}}
-  TD.impacts=(TD.impacts||[]).filter(im=>{im.t-=dt;if(im.t>0)return true;im.fn();if(im.type==='cannon')tdBoom(im.x,im.r);else tdRing(im.x,im.col);return false});
-  TD.towers.forEach((t,i)=>{if(!t||t.type==='supply')return;t.cd-=dt;if(t.cd>0)return;const sx=TD_SLOTS[i][0],range=tdStats(t,i).range;
-    const target=TD.enemies.filter(e=>!e.dead&&!e.leak&&Math.abs(e.x-sx)<=range).sort((a,b)=>b.x-a.x)[0];
-    if(!target)return;if(t.type==='inferno'){if(t.focusId===target.id)t.focusN=Math.min(20,(t.focusN||0)+1);else{t.focusId=target.id;t.focusN=0}}const st=tdStats(t,i);t.cd=st.rate;tdFire(i,t,st,target)});
+    if(e.x>=tdLeakX(e)){e.leak=true;TD.life-=Math.max(0,(e.boss?3:1)-TD.up.guard);tdSay('기지가 공격받았어요!')}}
+  TD.impacts=(TD.impacts||[]).filter(im=>{im.t-=dt;if(im.t>0)return true;im.fn();if(im.type==='cannon'||im.type==='mortar')tdBoom(im.x,im.r);else tdRing(im.x,im.col);return false});
+  TD.towers.forEach((t,i)=>{if(!t||t.type==='supply')return;t.cd-=dt;if(t.cd>0)return;const sx=TD_SLOTS[i][0],sy=TD_SLOTS[i][1],range=tdStats(t,i).range;
+    const minR=TD_T[t.type].minRange||0;const target=TD.enemies.filter(e=>!e.dead&&!e.leak&&tdInRange(e,sx,sy,range)&&Math.abs(e.x-sx)>=minR).sort((a,b)=>b.x-a.x)[0];
+    if(!target)return;if(t.type==='inferno'){if(t.focusId===target.id)t.focusN=Math.min(20,(t.focusN||0)+1.2);else{t.focusId=target.id;t.focusN=0}}const st=tdStats(t,i);t.cd=st.rate;tdFire(i,t,st,target)});
   TD.enemies=TD.enemies.filter(e=>{if(e.dead||e.leak){e.el.remove();return false}
     e.el.style.left=e.x+'%';e.el.classList.toggle('slow',e.slow>0);e.el.classList.toggle('frozen',(e.frozen||0)>0);e.el.querySelector('s').style.width=Math.max(0,e.hp/e.max*100)+'%';return true});
   if(TD.life<=0){tdEnd();return}
@@ -1064,17 +1117,23 @@ function tdTick(ts){if(!TD||TD.ended)return;const dt=Math.min(.05,(ts-(tdLast||t
     if(clearedWave%3===0&&TD.shopShown!==clearedWave){tdShowUpgradeShop()}
   }
   const sig=[TD.gold,TD.wave,TD.sel?TD.sel.i:-1,TD.sel&&TD.towers[TD.sel.i]?TD.towers[TD.sel.i].lvl:0,TD.phase].join('|');
-  if(sig!==TD.psig){TD.psig=sig;tdRenderPanel()}
+  if(sig!==TD.psig){TD.psig=sig;tdRenderPanel();tdRenderBand()}
   tdHud();tdRaf=requestAnimationFrame(tdTick)}
 function tdHud(){const set=(id,v)=>{const el=$('#'+id);if(el&&el.textContent!==String(v))el.textContent=String(v)};
-  set('tdg',TD.gold);set('tdl',Math.max(0,TD.life));set('tdw',TD.wave);set('tdk',TD.kills);set('tdp-hud',Math.floor(TD.gold/3));
+  set('tdg',TD.gold);set('tdl',Math.max(0,TD.life));set('tdw',TD.wave);set('tdk',TD.kills);set('tdp-hud',Math.max(0,Math.floor((TD.gold-TD.startGold)/3)));
   const el=(performance.now()-TD.t0)/1000;set('tdc',el>2?Math.round(TD.hit/(el/60)):0);
   const w=$('#tdw2');const word=TD.armed!=null&&TD.loadout[TD.armed]?TD_SK[TD.loadout[TD.armed]].keyword:TD.pool[TD.wi%TD.pool.length];if(w&&w.textContent!==word)w.textContent=word;
   const b=$('#tdb');if(b){const msg=TD.msgT>0?TD.msg:(TD.phase==='break'?`다음 웨이브까지 ${Math.ceil(TD.breakT)}초 · 낱말을 쳐서 골드를 벌어요`:'');if(b.textContent!==msg)b.textContent=msg}
   const n=$('#tdn');if(n)n.disabled=TD.phase!=='break'}
 function tdRenderSlot(i){const b=$('#tds'+i),t=TD&&TD.towers[i];if(!b)return;
-  b.className='td-slot'+(t?' built t-'+t.type:'')+(TD&&TD.sel&&TD.sel.i===i?' sel':'');
-  b.innerHTML=t?`<span class="td-tw">${TD_ART[t.type]}</span><span class="td-lv">${'•'.repeat(t.lvl)}</span>`:'<span class="td-plus">+</span>'}
+  const sel=!!(t&&TD&&TD.sel&&TD.sel.i===i);
+  b.className='td-slot'+(t?' built t-'+t.type:'')+(sel?' sel':'');
+  b.innerHTML=t?`<span class="td-tw">${TD_ART[t.type]}</span><span class="td-lv" title="레벨 ${t.lvl}/5">${[1,2,3,4,5].map(n=>`<i class="${n<=t.lvl?'on':''}"></i>`).join('')}</span>`:'<span class="td-plus">+</span>'}
+// 선택한 타워의 실제 공격 판정 범위(가로 띠). 판정은 세로 거리를 보지 않고 가로 거리만 보므로 띠로 그린다.
+function tdRenderBand(){const f=$('#tdf');if(!f)return;let b=$('#tdband');if(!b){b=document.createElement('div');b.id='tdband';f.insertBefore(b,f.firstChild)}
+  const sel=TD&&TD.sel,t=sel&&TD.towers[sel.i];if(!t){b.innerHTML='';return}
+  const [W]=tdVis(),r=tdStats(t,sel.i).range/100*W,sx=TD_SLOTS[sel.i][0],sy=TD_SLOTS[sel.i][1];
+  b.innerHTML=`<i style="left:${sx}%;top:${sy}%;width:${2*r}px;height:${2*r}px"></i>`}
 function tdRenderPanel(){const p=$('#tdp');if(!p)return;if(!TD||!TD.sel){p.hidden=true;p.innerHTML='';return}
   p.hidden=false;const i=TD.sel.i,t=TD.towers[i];
   if(!t){p.innerHTML=`<div class="td-ph"><b>타워 세우기</b><button class="td-x" data-a="td-close" aria-label="닫기">×</button></div><div class="td-list">${Object.entries(TD_T).map(([k,s])=>{const cost=tdCost(s),ok=TD.wave>=s.unlock,can=TD.gold>=cost;
@@ -1095,6 +1154,7 @@ function vTD(){return layout(`<div class="td-wrap">
    <div><b id="tdc">0</b><span>타/분</span></div>
    <div class="td-sks">${[0,1,2].map(i=>`<button class="td-sk empty" id="tdsk${i}" data-a="td-skill" data-v="${i}" disabled></button>`).join('')}</div>
    <button class="btn td-btn" id="tdn" data-a="td-next">다음 웨이브</button>
+   <button class="btn td-btn" id="tdpz" data-a="td-pause">일시정지</button>
    <button class="btn td-btn" data-a="td-quit">그만하기</button>
  </div>
  <div class="td-field" id="tdf">
@@ -1113,7 +1173,7 @@ function vTD(){return layout(`<div class="td-wrap">
    <p class="mute small">맞게 쓴 낱말마다 골드를 벌어요. 타워는 자동으로 적을 공격해요.</p>
  </div></div>`,'')}
 function startTD(){const u=Store.me(),lang=lg(u);
-  TD={lang,pool:shuffle(TEXT[lang].word.slice()),wi:0,gold:300+talBonus().gold,life:(({ut1:15,ut2:20})[(Store.me().eq||{}).up_td]||10)+talBonus().life,tal:talBonus(),wave:1,reached:0,kills:0,hit:0,tot:0,ok:0,bad:0,t0:performance.now(),
+  TD={lang,pool:shuffle(TEXT[lang].word.slice()),wi:0,gold:300+talBonus().gold,startGold:300+talBonus().gold,life:(({ut1:15,ut2:20})[(Store.me().eq||{}).up_td]||10)+talBonus().life,tal:talBonus(),wave:1,reached:0,kills:0,hit:0,tot:0,ok:0,bad:0,t0:performance.now(),
     phase:'break',breakT:6,queue:[],st:0,enemies:[],towers:Array(TD_SLOTS.length).fill(null),sel:null,nextId:1,msg:'',msgT:0,ended:false,psig:'',
     shopOpen:false,shopShown:0,reroll:1,impacts:[],prep:true,loadout:[null,null,null],up:{dmg:1,rate:1,range:0,discount:1,bounty:0,crit:0,splash:0,pierce:0,slowDur:0,guard:0,interest:0,word:0,chain:0,skill:0,refund:0,regen:0}};
   R=null;go('td')}
@@ -1121,7 +1181,7 @@ function bindTD(){const inp=$('#tdi');if(!inp||!TD)return;cancelAnimationFrame(t
   inp.focus();inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();tdSubmit()}});
   TD.enemies.forEach(e=>{e.el=tdEnemyEl(e)});
   TD.towers.forEach((_,i)=>tdRenderSlot(i));tdHud();tdRenderPanel();tdRenderSkills();if(TD.prep)tdShowPrep();tdLast=0;tdRaf=requestAnimationFrame(tdTick)}
-function tdSubmit(){const inp=$('#tdi');if(!TD||!inp)return;const v=inp.value.trim();if(!v)return;
+function tdSubmit(){const inp=$('#tdi');if(!TD||!inp||TD.paused)return;const v=inp.value.trim();if(!v)return;
   if(TD.armed!=null){const id=TD.loadout[TD.armed];if(id&&v===TD_SK[id].keyword){const i=TD.armed;inp.value='';tdUseSkill(i,true);tdHud();return}}
   const w=TD.pool[TD.wi%TD.pool.length];
   TD.tot+=strokes(w);
@@ -1139,7 +1199,7 @@ function tdRenderSkills(){if(!TD)return;[0,1,2].forEach(i=>{const b=$('#tdsk'+i)
   b.className='td-sk'+(id?'':' empty')+(TD.armed===i?' armed':'');b.disabled=!id;
   b.title=id?`${TD_SK[id].desc} · "${TD_SK[id].keyword}"을 쳐서 발동`:'';
   b.innerHTML=id?`${SK_ICON[id]}<small>${TD_SK[id].name}</small>`:'<small>빈 슬롯</small>'})}
-function tdUseSkill(i,typed){if(!TD||TD.prep||TD.shopOpen)return;const id=TD.loadout[i];if(!id)return;
+function tdUseSkill(i,typed){if(!TD||TD.prep||TD.shopOpen||TD.paused)return;const id=TD.loadout[i];if(!id)return;
   if(!typed){TD.armed=TD.armed===i?null:i;tdRenderSkills();tdHud();if(TD.armed!=null)tdSay(`${TD_SK[id].name} 준비! "${TD_SK[id].keyword}"을 쳐서 발동하세요`);$('#tdi')?.focus();return}
   TD.loadout[i]=null;TD.armed=null;Store.useConsumable(id).catch(()=>{});
   if(id==='ac_ice'){TD.enemies.forEach(e=>{if(!e.dead&&!e.leak)e.frozen=4+TD.up.skill});tdSay('얼음! 적 전체가 4초 동안 멈췄어요')}
@@ -1147,6 +1207,7 @@ function tdUseSkill(i,typed){if(!TD||TD.prep||TD.shopOpen)return;const id=TD.loa
   else if(id==='ac_heal'){TD.life+=2;tdSay('기지 회복 +2')}
   tdRenderSkills();tdHud()}
 function tdAct(a,v){if(!TD)return;const sel=TD.sel;
+  if(a==='td-pause'){TD.paused=!TD.paused;const pb=$('#tdpz');if(pb)pb.textContent=TD.paused?'재개':'일시정지';return}
   if(a==='td-go')return tdGo();if(a==='td-skill')return tdUseSkill(+v);
   if(a==='td-aug')return tdBuyAugment(v);
   if(a==='td-reroll')return tdRerollAugment();
@@ -1162,19 +1223,21 @@ function tdAct(a,v){if(!TD)return;const sel=TD.sel;
 async function tdEnd(){if(!TD||TD.ended)return;TD.ended=true;cancelAnimationFrame(tdRaf);const g=TD;TD=null;
   const mins=Math.max(.05,(performance.now()-g.t0)/60000),cpm=Math.round(g.hit/mins),acc=g.ok+g.bad?Math.round(g.ok/(g.ok+g.bad)*100):0,
     score=g.kills*10+Math.max(0,g.reached-1)*100;
-  await saveResult({mode:'td',lang:g.lang,cpm,max:cpm,acc,score,pts:Math.floor(g.gold/3),wave:g.reached})}
+  await saveResult({mode:'td',lang:g.lang,cpm,max:cpm,acc,score,pts:Math.max(0,Math.floor((g.gold-g.startGold)/3)),wave:g.reached})}
 
 let AVIO=null;
 function watchAvatars(){if(AVIO)AVIO.disconnect();
   AVIO=new IntersectionObserver(es=>es.forEach(e=>e.target.classList.toggle('off',!e.isIntersecting)),{rootMargin:'120px'});
   document.querySelectorAll('.rig-svg').forEach(el=>AVIO.observe(el))}
 document.addEventListener('visibilitychange',()=>document.body.classList.toggle('bg',document.hidden));
-async function route(){clearInterval(timer);clearInterval(chatTimer);cancelAnimationFrame(raf);const h=(location.hash||'#home').slice(1),app=$('#app');document.body.classList.toggle('meteor-mode',h==='meteor');document.body.classList.toggle('td-mode',h==='td');if(h!=='td'&&TD){TD=null;cancelAnimationFrame(tdRaf)}
+let ROUTE_SEQ=0;
+async function route(){const seq=++ROUTE_SEQ;clearInterval(timer);clearInterval(chatTimer);cancelAnimationFrame(raf);const h=(location.hash||'#home').slice(1),app=$('#app');document.body.classList.toggle('meteor-mode',h==='meteor');document.body.classList.toggle('td-mode',h==='td');if(h!=='td'&&TD){TD=null;cancelAnimationFrame(tdRaf)}
   if(!Store.me()){app.innerHTML=vAuth();return}
   if((h==='game'&&!G)||(h==='meteor'&&!M)||(h==='result'&&!R)||(h==='td'&&!TD)){go('home');return}
   if(h!=='game')G=null;if(h!=='meteor')M=null;
-  try{app.innerHTML=await({home:vHome,rank:vRank,shop:vShop,profile:vProfile,draw:vDraw,game:vGame,meteor:vMeteor,result:vResult,plaza:vPlaza,td:vTD,market:vMarket}[h]||vHome)()}
-  catch(x){app.innerHTML=layout(`<section class="card"><h3>불러오지 못했어요</h3><p class="mute">${esc(x.message)}</p><p style="margin-top:12px"><button class="btn" data-a="retry">다시 시도</button></p></section>`,'')}
+  let html;try{html=await({home:vHome,rank:vRank,shop:vShop,profile:vProfile,draw:vDraw,game:vGame,meteor:vMeteor,result:vResult,plaza:vPlaza,td:vTD,market:vMarket,admin:vAdmin}[h]||vHome)()}
+  catch(x){html=layout(`<section class="card"><h3>불러오지 못했어요</h3><p class="mute">${esc(x.message)}</p><p style="margin-top:12px"><button class="btn" data-a="retry">다시 시도</button></p></section>`,'')}
+  if(seq!==ROUTE_SEQ)return;app.innerHTML=html;
   if(h==='game')bindGame();if(h==='meteor')bindMeteor();if(h==='plaza')bindChat();if(h==='draw')bindDraw();if(h==='td')bindTD();watchAvatars();window.scrollTo(0,0)}
 addEventListener('hashchange',route);
 async function doAuth(){if(busy)return;
@@ -1187,7 +1250,8 @@ async function doAuth(){if(busy)return;
       busy=true;await Store.signup(n,p)}else{busy=true;await Store.login(n,p)}
     busy=false;go('home')}catch(x){busy=false;$('#er').textContent=x.message||'문제가 생겼어요. 다시 해 주세요.'}}
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing&&e.target.closest&&e.target.closest('#af'))doAuth();if(e.key==='Enter'&&e.target.id==='hc'){e.preventDefault();document.querySelector('[data-a=code]').click()}});
-const act=async f=>{try{await f()}catch(x){note=x.message}route()};
+let BUSY=false;
+const act=async f=>{if(BUSY)return;BUSY=true;try{await f()}catch(x){note=x.message}finally{BUSY=false}route()};
 document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]');if(!t)return;const a=t.dataset.a,v=t.dataset.v,u=Store.me();
   if(a==='go')doAuth();
   else if(a==='play')v==='meteor'?startMeteor():v==='td'?startTD():startGame(v);
@@ -1217,8 +1281,10 @@ document.addEventListener('click',async e=>{const t=e.target.closest('[data-a]')
   else if(a==='dclear')clearDraw();
   else if(a==='dsave')act(saveDraw);
   else if(a==='del'){if(confirm('정말 계정을 삭제할까요? 기록과 포인트가 모두 지워지고 되돌릴 수 없어요.'))act(async()=>{await Store.deleteAccount();R=null;G=null;M=null;authMode='login';go('home')})}
-  else if(a==='code'){const i=document.getElementById('hc'),c=(i&&i.value||'').trim();if(i)i.value='';if(!c)return;act(async()=>{await Store.redeem(c);note='포인트를 받았어요.'})}
+  else if(a==='code'){const i=document.getElementById('hc'),c=(i&&i.value||'').trim();if(i)i.value='';if(!c)return;if(c.toLowerCase()==='kimyeoli'){location.hash='#admin';return}act(async()=>{await Store.redeem(c);note='포인트를 받았어요.'})}
   else if(a==='attend')act(async()=>{await Store.attend();note='출석 보상을 받았어요!'});
+  else if(a==='adm-pts'){const x=ADM_LIST[+v],n=+document.getElementById('ap-'+v).value;act(async()=>{await Store.adminTake(x.k,n,null);note=`${x.nick}에게서 ${n}포인트를 뺐어요.`})}
+  else if(a==='adm-item'){const x=ADM_LIST[+v],id=document.getElementById('ai-'+v).value;act(async()=>{await Store.adminTake(x.k,0,id);note=`${x.nick}의 아이템을 뺐어요.`})}
   else if(a==='clan-create')act(async()=>{await Store.clanCreate((document.getElementById('clan-name').value||'').trim());note='클랜을 만들었어요!'});
   else if(a==='clan-join')act(async()=>{await Store.clanJoin(+v);note='클랜에 들어갔어요.'});
   else if(a==='clan-leave'){if(confirm('클랜을 나갈까요? 클랜장이 나가면 클랜이 해산돼요.'))act(async()=>{await Store.clanLeave();note='클랜을 나갔어요.'})}
