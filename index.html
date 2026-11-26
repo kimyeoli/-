@@ -3,19 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Taja. Survivors — v1</title>
+  <title>Taja. Survivors — Arcane Edition</title>
   <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
     :root {
-      --bg-paper: #f7f4eb;
-      --grid-line: rgba(42, 42, 42, 0.08);
-      --ink: #1c1c1c;
-      --panel: #fffdf8;
-      --accent: #ff5e3a;
-      --accent-2: #2563eb;
-      --ok: #16a34a;
-      --warn: #d97706;
-      --border: 3px solid #1c1c1c;
-      --shadow: 4px 4px 0px #1c1c1c;
+      --bg-deep: #070a12;
+      --glass: rgba(13, 19, 34, 0.78);
+      --glass-strong: rgba(11, 16, 29, 0.92);
+      --border: rgba(148, 163, 184, 0.22);
+      --border-glow: rgba(56, 189, 248, 0.45);
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-warm: #fb7185;
+      --gold: #fbbf24;
+      --emerald: #34d399;
     }
 
     * {
@@ -23,511 +26,856 @@
       user-select: none;
     }
 
-    body {
+    html, body {
       margin: 0;
-      min-height: 100vh;
-      font-family: "Pretendard", "Noto Sans KR", system-ui, -apple-system, sans-serif;
-      color: var(--ink);
-      background-color: var(--bg-paper);
-      background-image:
-        linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
-        linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
-      background-size: 24px 24px;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg-deep);
+      color: var(--text);
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    }
+
+    #gameCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+      cursor: crosshair;
+    }
+
+    /* Top Floating HUD */
+    .hud-top {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      pointer-events: none;
+      z-index: 5;
+      gap: 12px;
+    }
+
+    .hud-left {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 14px;
-      gap: 10px;
+      gap: 8px;
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 16px;
+      min-width: 280px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+      pointer-events: auto;
     }
 
-    .topbar {
-      width: min(1000px, 100%);
+    .brand-row {
       display: flex;
-      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      gap: 8px;
-      background: var(--panel);
-      border: var(--border);
-      box-shadow: var(--shadow);
-      padding: 10px 14px;
-      border-radius: 12px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
       gap: 10px;
-      font-weight: 900;
-      font-size: 1.2rem;
     }
 
-    .badge {
-      font-size: 0.75rem;
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 2px solid var(--ink);
-      background: #fde047;
+    .brand-title {
       font-weight: 800;
-    }
-
-    .hud-group {
+      font-size: 0.95rem;
+      letter-spacing: 0.02em;
       display: flex;
-      flex-wrap: wrap;
       align-items: center;
       gap: 8px;
-      font-weight: 700;
-      font-size: 0.9rem;
     }
 
-    .pill {
-      background: #fff;
-      border: 2px solid var(--ink);
-      border-radius: 8px;
-      padding: 4px 10px;
+    .dot-live {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 10px var(--emerald);
+    }
+
+    .timer-badge {
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--accent);
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 2px 9px;
+      border-radius: 999px;
+    }
+
+    .bar-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .bar-track {
+      width: 100%;
+      height: 8px;
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .bar-fill-hp {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #f43f5e, #fb7185);
+      box-shadow: 0 0 10px rgba(244, 63, 94, 0.6);
+      transition: width 0.12s ease-out;
+    }
+
+    .bar-fill-exp {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #0284c7, #38bdf8);
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+      transition: width 0.15s ease-out;
+    }
+
+    .stats-mini {
+      display: flex;
+      gap: 12px;
+      font-size: 0.8rem;
+      color: var(--text);
+      font-weight: 600;
+      padding-top: 2px;
+    }
+
+    .hud-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+      pointer-events: auto;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 6px;
     }
 
     button {
       font-family: inherit;
-      font-weight: 800;
-      border: 2.5px solid var(--ink);
-      box-shadow: 2px 2px 0 var(--ink);
-      background: #fff;
-      color: var(--ink);
-      border-radius: 8px;
-      padding: 6px 12px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text);
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 7px 12px;
       cursor: pointer;
-      transition: transform 0.06s ease;
+      transition: all 0.15s ease;
     }
 
-    button:active {
-      transform: translate(2px, 2px);
-      box-shadow: none;
+    button:hover {
+      border-color: var(--border-glow);
+      background: rgba(30, 41, 59, 0.88);
+    }
+
+    button.active {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.18);
+      color: #e0f2fe;
     }
 
     button.primary {
-      background: var(--accent);
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      border: 1px solid rgba(125, 211, 252, 0.5);
       color: #fff;
+      font-size: 0.95rem;
+      padding: 11px 20px;
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
     }
 
-    button.active-toggle {
-      background: #bfdbfe;
+    button.primary:hover {
+      filter: brightness(1.1);
+      transform: translateY(-1px);
     }
 
-    .stage-wrap {
-      position: relative;
-      width: min(1000px, 100%);
-      aspect-ratio: 16 / 9;
-      background: var(--panel);
-      border: var(--border);
-      box-shadow: var(--shadow);
-      border-radius: 14px;
-      overflow: hidden;
+    #minimapCanvas {
+      width: 154px;
+      height: 106px;
+      border-radius: 12px;
+      background: rgba(9, 13, 24, 0.85);
+      border: 1px solid var(--border);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
     }
 
-    canvas {
+    /* Always-on-screen Floating Typing HUD */
+    .typing-hud {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(620px, calc(100vw - 32px));
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      z-index: 6;
+      pointer-events: none;
+    }
+
+    .word-ribbon {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      min-height: 28px;
+    }
+
+    .word-chip {
+      font-size: 0.84rem;
+      font-weight: 700;
+      padding: 4px 11px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.82);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      color: #cbd5e1;
+      letter-spacing: 0.02em;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    }
+
+    .word-chip.matched {
+      border-color: var(--gold);
+      background: rgba(251, 191, 36, 0.16);
+      color: #fef08a;
+      box-shadow: 0 0 14px rgba(251, 191, 36, 0.35);
+    }
+
+    .word-chip .hl {
+      color: var(--gold);
+      text-decoration: underline;
+    }
+
+    .cast-box {
       width: 100%;
-      height: 100%;
-      display: block;
-    }
-
-    .typing-bar {
-      width: min(1000px, 100%);
       display: flex;
       align-items: center;
       gap: 10px;
-      background: var(--panel);
-      border: var(--border);
-      box-shadow: var(--shadow);
-      padding: 10px 14px;
-      border-radius: 12px;
+      background: var(--glass-strong);
+      backdrop-filter: blur(14px);
+      border: 1.5px solid var(--border-glow);
+      border-radius: 16px;
+      padding: 8px 14px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(56, 189, 248, 0.08);
+      pointer-events: auto;
     }
 
-    .typing-label {
-      font-weight: 900;
-      white-space: nowrap;
-      background: #ffedd5;
-      border: 2px solid var(--ink);
-      padding: 5px 10px;
+    .cast-badge {
+      font-size: 0.74rem;
+      font-weight: 800;
+      color: var(--accent);
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      padding: 4px 9px;
       border-radius: 8px;
+      white-space: nowrap;
     }
 
     #wordInput {
       flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #ffffff;
       font-family: inherit;
       font-size: 1.15rem;
-      font-weight: 800;
-      padding: 8px 12px;
-      border: 2.5px solid var(--ink);
-      border-radius: 8px;
-      background: #fff;
-      color: var(--ink);
-      outline: none;
+      font-weight: 700;
+      letter-spacing: 0.03em;
     }
 
-    #wordInput:focus {
-      background: #fef9c3;
+    #wordInput::placeholder {
+      color: #64748b;
+      font-weight: 500;
+      font-size: 0.92rem;
     }
 
-    .overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(247, 244, 235, 0.9);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      z-index: 10;
+    .cast-hint {
+      font-size: 0.72rem;
+      color: var(--muted);
+      white-space: nowrap;
     }
 
-    .overlay.hidden {
-      display: none;
-    }
-
-    .card {
-      width: min(560px, 100%);
-      background: var(--panel);
-      border: var(--border);
-      box-shadow: 6px 6px 0 var(--ink);
-      border-radius: 14px;
-      padding: 22px;
+    /* Non-pausing Level Up Banner */
+    .level-banner {
+      position: fixed;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(560px, calc(100vw - 32px));
+      background: var(--glass-strong);
+      backdrop-filter: blur(16px);
+      border: 1.5px solid rgba(251, 191, 36, 0.6);
+      border-radius: 16px;
+      padding: 14px 16px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), 0 0 25px rgba(251, 191, 36, 0.2);
+      z-index: 9;
       display: flex;
       flex-direction: column;
-      gap: 14px;
-    }
-
-    .card h2 {
-      margin: 0;
-      font-size: 1.4rem;
-    }
-
-    .option-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .level-choices {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
       gap: 10px;
     }
 
-    .choice-box {
-      background: #fff;
-      border: 2.5px solid var(--ink);
-      box-shadow: 3px 3px 0 var(--ink);
-      border-radius: 10px;
-      padding: 12px;
-      text-align: left;
+    .level-banner.hidden {
+      display: none;
+    }
+
+    .level-title {
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: var(--gold);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .choices-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .choice-card {
+      background: rgba(30, 41, 59, 0.75);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 11px;
+      padding: 10px;
+      cursor: pointer;
+      transition: all 0.14s ease;
+    }
+
+    .choice-card:hover {
+      border-color: var(--gold);
+      background: rgba(51, 65, 85, 0.9);
+      transform: translateY(-2px);
     }
 
     .choice-key {
       display: inline-block;
-      background: #fde047;
-      border: 2px solid var(--ink);
-      border-radius: 6px;
-      padding: 1px 7px;
-      font-weight: 900;
-      margin-bottom: 6px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: #0f172a;
+      background: var(--gold);
+      padding: 1px 6px;
+      border-radius: 5px;
+      margin-bottom: 5px;
     }
 
-    .hint {
-      font-size: 0.85rem;
-      color: #444;
-      line-height: 1.45;
+    .choice-name {
+      font-size: 0.86rem;
+      font-weight: 800;
+      color: #f8fafc;
+    }
+
+    .choice-desc {
+      font-size: 0.74rem;
+      color: var(--muted);
+      margin-top: 3px;
+      line-height: 1.35;
+    }
+
+    /* Modal Overlays (Lobby & Game Over) */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 7, 15, 0.78);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 20;
+    }
+
+    .modal-backdrop.hidden {
+      display: none;
+    }
+
+    .modal-card {
+      width: min(480px, 100%);
+      background: linear-gradient(160deg, rgba(17, 24, 39, 0.96), rgba(9, 13, 24, 0.98));
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 20px;
+      padding: 26px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(56, 189, 248, 0.12);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal-card h1 {
+      margin: 0;
+      font-size: 1.55rem;
+      font-weight: 900;
+      background: linear-gradient(90deg, #f8fafc, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .guide-list {
+      margin: 0;
+      padding: 12px 14px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 0.84rem;
+      color: #cbd5e1;
+      line-height: 1.65;
+      list-style: none;
+    }
+
+    .guide-list strong {
+      color: var(--accent);
+    }
+
+    .opt-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .opt-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .opt-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .opt-row button {
+      flex: 1;
+      padding: 9px;
     }
   </style>
 </head>
 <body>
-  <div class="topbar">
-    <div class="brand">
-      <!-- SVG Avatar -->
-      <svg width="34" height="34" viewBox="0 0 36 36" aria-hidden="true">
-        <rect x="3" y="3" width="30" height="30" rx="8" fill="#fde047" stroke="#1c1c1c" stroke-width="3"/>
-        <circle cx="13" cy="16" r="2.8" fill="#1c1c1c"/>
-        <circle cx="23" cy="16" r="2.8" fill="#1c1c1c"/>
-        <path d="M12 23 Q18 28 24 23" fill="none" stroke="#1c1c1c" stroke-width="2.8" stroke-linecap="round"/>
-      </svg>
-      <span>Taja. Survivors</span>
-      <span class="badge">v1 SINGLE</span>
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- Top HUD -->
+  <div class="hud-top">
+    <div class="hud-left">
+      <div class="brand-row">
+        <div class="brand-title"><span class="dot-live"></span>TAJA. SURVIVORS</div>
+        <span class="timer-badge" id="hudTime">00:00</span>
+      </div>
+
+      <div class="bar-wrap">
+        <div class="bar-label">
+          <span>체력 (HP)</span>
+          <span id="hudHpText">100 / 100</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill-hp" id="hudHpBar"></div></div>
+      </div>
+
+      <div class="bar-wrap">
+        <div class="bar-label">
+          <span id="hudLvText">LV. 1</span>
+          <span id="hudExpText">0 / 50 EXP</span>
+        </div>
+        <div class="bar-track"><div class="bar-fill-exp" id="hudExpBar"></div></div>
+      </div>
+
+      <div class="stats-mini">
+        <span id="hudKills">처치 0</span>
+        <span>•</span>
+        <span id="hudScore">점수 0</span>
+        <span>•</span>
+        <span id="hudDmg">공격력 28</span>
+      </div>
     </div>
 
-    <div class="hud-group">
-      <span class="pill" id="hudHp">HP 100/100</span>
-      <span class="pill" id="hudLv">LV.1 (EXP 0/50)</span>
-      <span class="pill" id="hudScore">처치 0 · 점수 0</span>
-      <span class="pill" id="hudTime">00:00</span>
-      <button id="aimToggleBtn" class="active-toggle">조준: 자동</button>
-      <button id="soundToggleBtn">소리: ON</button>
-      <button id="votePauseBtn">일시정지 투표</button>
+    <div class="hud-right">
+      <div class="btn-row">
+        <button id="aimBtn" class="active">조준: 자동</button>
+        <button id="soundBtn" class="active">사운드: ON</button>
+        <button id="pauseBtn">일시정지</button>
+      </div>
+      <canvas id="minimapCanvas" width="154" height="106"></canvas>
     </div>
   </div>
 
-  <div class="stage-wrap">
-    <canvas id="gameCanvas" width="960" height="540"></canvas>
-
-    <!-- Start / Lobby Overlay -->
-    <div id="startOverlay" class="overlay">
-      <div class="card">
-        <h2>Taja. Survivors — v1 프로토타입</h2>
-        <div class="hint">
-          • <strong>이동:</strong> 캔버스 클릭으로 그리드 칸 이동 (실시간 진행)<br />
-          • <strong>공격:</strong> 아래 입력창에 화면의 단어를 치고 <strong>Enter</strong> 또는 <strong>Space</strong><br />
-          • <strong>레벨업:</strong> 게임이 멈추지 않으니 <strong>1, 2, 3</strong> 키로 즉시 업그레이드 선택!
-        </div>
-
-        <div>
-          <strong>언어 / 단어 풀</strong>
-          <div class="option-row" style="margin-top:6px;">
-            <button data-lang="ko" class="lang-btn active-toggle">한글 단어</button>
-            <button data-lang="en" class="lang-btn">English Words</button>
-          </div>
-        </div>
-
-        <div>
-          <strong>모드 프리뷰</strong>
-          <div class="option-row" style="margin-top:6px;">
-            <button data-mode="coop" class="mode-btn active-toggle">협동 (Co-op)</button>
-            <button data-mode="pvpve" class="mode-btn">경쟁 (PvPvE · 직접피해 없음)</button>
-          </div>
-        </div>
-
-        <button id="startBtn" class="primary" style="padding:10px; font-size:1.05rem;">게임 시작</button>
-      </div>
+  <!-- Non-pausing Level Up Banner -->
+  <div id="levelBanner" class="level-banner hidden">
+    <div class="level-title">
+      <span>⚡ 레벨업! 업그레이드를 선택하세요</span>
+      <span>단축키 [1] [2] [3]</span>
     </div>
+    <div id="choicesGrid" class="choices-grid"></div>
+  </div>
 
-    <!-- Non-pausing Level Up Banner -->
-    <div id="levelOverlay" class="overlay hidden" style="background: rgba(28, 28, 28, 0.25); align-items: flex-start;">
-      <div class="card" style="margin-top: 12px;">
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <strong>⚡ 레벨업! (게임은 계속 진행 중 — 1, 2, 3 키를 누르세요)</strong>
-        </div>
-        <div id="levelChoices" class="level-choices"></div>
-      </div>
-    </div>
-
-    <!-- Game Over Overlay -->
-    <div id="gameOverOverlay" class="overlay hidden">
-      <div class="card">
-        <h2>게임 오버!</h2>
-        <div id="finalStats" class="hint" style="font-size:1rem; color:#1c1c1c;"></div>
-        <button id="restartBtn" class="primary" style="padding:10px;">다시 플레이</button>
-      </div>
+  <!-- Always-on-screen Floating Typing Cast Bar -->
+  <div class="typing-hud">
+    <div class="word-ribbon" id="wordRibbon"></div>
+    <div class="cast-box">
+      <span class="cast-badge">타자 시전</span>
+      <input id="wordInput" type="text" autocomplete="off" spellcheck="false" placeholder="화면 위 단어를 입력하면 마법이 발사됩니다..." />
+      <span class="cast-hint">완성 시 자동 / Space·Enter</span>
     </div>
   </div>
 
-  <div class="typing-bar">
-    <span class="typing-label">타자 공격</span>
-    <input id="wordInput" type="text" autocomplete="off" spellcheck="false" placeholder="단어를 입력하고 Enter 또는 Space..." />
+  <!-- Start Lobby Modal -->
+  <div id="startModal" class="modal-backdrop">
+    <div class="modal-card">
+      <h1>TAJA. SURVIVORS</h1>
+      <ul class="guide-list">
+        <li><strong>이동:</strong> 화면 클릭 또는 드래그 시 목표 지점까지 등속 직선 이동 (맵 끝 벽에서 정지)</li>
+        <li><strong>공격:</strong> 화면 상시 타자창에 적의 단어를 입력하면 즉시 마법 탄환 발사</li>
+        <li><strong>성장:</strong> 드롭된 마나 보석을 회수해 레벨업 후 <strong>1, 2, 3</strong> 키로 강화</li>
+      </ul>
+
+      <div class="opt-group">
+        <span class="opt-label">단어 풀 선택</span>
+        <div class="opt-row">
+          <button class="lang-btn active" data-lang="ko">한글 단어</button>
+          <button class="lang-btn" data-lang="en">English Words</button>
+        </div>
+      </div>
+
+      <button id="startBtn" class="primary">전투 시작</button>
+    </div>
+  </div>
+
+  <!-- Game Over Modal -->
+  <div id="gameOverModal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h1>전투 종료</h1>
+      <div id="finalSummary" class="guide-list" style="font-size:0.95rem;"></div>
+      <button id="restartBtn" class="primary">다시 도전하기</button>
+    </div>
   </div>
 
   <script>
-    const GRID = 48;
-    const COLS = Math.floor(960 / GRID);
-    const ROWS = Math.floor(540 / GRID);
+    // Bounded World Dimensions (Camera follows player and clamps at edges)
+    const WORLD_W = 2200;
+    const WORLD_H = 1500;
+    const TILE_SIZE = 64;
+    const PLAYER_RADIUS = 18;
 
     const WORDS = {
       ko: [
-        "타자", "속도", "바람", "번개", "방패", "칼날", "불꽃", "구름", "폭풍", "거울",
-        "그림자", "빛줄기", "심장", "연필", "노트", "도장", "문장", "단어", "승리", "생존",
-        "모험", "용기", "정확", "연타", "폭발", "수호", "질주", "궤도", "파동", "신화"
+        "바람", "번개", "불꽃", "방패", "칼날", "폭풍", "거울", "그림자", "빛줄기", "심장",
+        "파동", "궤도", "질주", "수호", "폭발", "연타", "정확", "용기", "신화", "별빛",
+        "서리", "화염", "균열", "결계", "창공", "유성", "태풍", "섬광", "격류", "봉인",
+        "각성", "공명", "초신성", "마력", "비전", "영혼", "수호자", "사냥꾼", "집중", "돌파"
       ],
       en: [
-        "type", "dash", "bolt", "nova", "shield", "blade", "spark", "storm", "pulse", "focus",
-        "glyph", "echo", "drift", "prism", "vigor", "strike", "swift", "orbit", "surge", "relic"
+        "bolt", "nova", "spark", "storm", "pulse", "focus", "glyph", "echo", "drift", "prism",
+        "vigor", "strike", "swift", "orbit", "surge", "relic", "blade", "frost", "flame", "vortex",
+        "aegis", "comet", "zenith", "phantom", "radiant", "vector", "cipher", "arcane", "zephyr", "ember"
       ]
     };
 
     const UPGRADES = [
-      { id: "dmg", title: "공격력 +12", desc: "단어 처치 피해량 증가" },
-      { id: "spd", title: "이동속도 +18%", desc: "그리드 이동 쿨타임 단축" },
-      { id: "heal", title: "체력 +35 회복", desc: "현재 HP 즉시 회복" },
-      { id: "cleave", title: "광역 파동", desc: "적 처치 시 주변 적에게 10 피해" },
-      { id: "maxhp", title: "최대 체력 +25", desc: "최대 HP와 현재 HP 상승" }
+      { id: "dmg", name: "마력 증폭", desc: "공격력 +14 증가" },
+      { id: "spd", name: "신속의 장화", desc: "이동 속도 +16% 증가" },
+      { id: "cleave", name: "비전 충격파", desc: "처치 시 주변 적에게 14 광역 피해" },
+      { id: "magnet", name: "마나 인력", desc: "경험치 보석 흡수 반경 +55%" },
+      { id: "heal", name: "생명력 재생", desc: "최대 체력 +20 및 체력 40 회복" }
     ];
 
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
+    const miniCanvas = document.getElementById("minimapCanvas");
+    const miniCtx = miniCanvas.getContext("2d");
     const wordInput = document.getElementById("wordInput");
+    const wordRibbon = document.getElementById("wordRibbon");
 
-    const hudHp = document.getElementById("hudHp");
-    const hudLv = document.getElementById("hudLv");
-    const hudScore = document.getElementById("hudScore");
     const hudTime = document.getElementById("hudTime");
-    const aimToggleBtn = document.getElementById("aimToggleBtn");
-    const soundToggleBtn = document.getElementById("soundToggleBtn");
-    const votePauseBtn = document.getElementById("votePauseBtn");
+    const hudHpText = document.getElementById("hudHpText");
+    const hudHpBar = document.getElementById("hudHpBar");
+    const hudLvText = document.getElementById("hudLvText");
+    const hudExpText = document.getElementById("hudExpText");
+    const hudExpBar = document.getElementById("hudExpBar");
+    const hudKills = document.getElementById("hudKills");
+    const hudScore = document.getElementById("hudScore");
+    const hudDmg = document.getElementById("hudDmg");
 
-    const startOverlay = document.getElementById("startOverlay");
-    const levelOverlay = document.getElementById("levelOverlay");
-    const levelChoices = document.getElementById("levelChoices");
-    const gameOverOverlay = document.getElementById("gameOverOverlay");
-    const finalStats = document.getElementById("finalStats");
+    const aimBtn = document.getElementById("aimBtn");
+    const soundBtn = document.getElementById("soundBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const levelBanner = document.getElementById("levelBanner");
+    const choicesGrid = document.getElementById("choicesGrid");
+    const startModal = document.getElementById("startModal");
+    const gameOverModal = document.getElementById("gameOverModal");
+    const finalSummary = document.getElementById("finalSummary");
+
+    let viewW = window.innerWidth;
+    let viewH = window.innerHeight;
+    function resizeCanvas() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      viewW = window.innerWidth;
+      viewH = window.innerHeight;
+      canvas.width = Math.floor(viewW * dpr);
+      canvas.height = Math.floor(viewH * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
 
     let lang = "ko";
-    let mode = "coop";
     let autoAim = true;
     let soundOn = true;
-    let softPaused = false;
+    let paused = false;
     let running = false;
+    let isPointerDown = false;
+    let isComposing = false;
+    let autoCastTimer = null;
 
+    // Web Audio Synthesizer
     let audioCtx = null;
-    function playTone(freq = 440, duration = 0.08, type = "triangle") {
+    function playSfx(freq, dur = 0.07, type = "triangle", vol = 0.07, slideTo = null) {
       if (!soundOn) return;
       try {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = audioCtx.currentTime;
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = type;
-        osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.frequency.setValueAtTime(freq, now);
+        if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, now + dur);
+        gain.gain.setValueAtTime(vol, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
+        osc.start(now);
+        osc.stop(now + dur);
       } catch (_) {}
     }
 
-    let state = {};
-    function resetState() {
+    let state = null;
+    function initState() {
       state = {
         player: {
-          gx: Math.floor(COLS / 2),
-          gy: Math.floor(ROWS / 2),
-          x: Math.floor(COLS / 2) * GRID + GRID / 2,
-          y: Math.floor(ROWS / 2) * GRID + GRID / 2,
-          targetGx: Math.floor(COLS / 2),
-          targetGy: Math.floor(ROWS / 2),
-          moveCooldown: 0,
+          x: WORLD_W / 2,
+          y: WORLD_H / 2,
+          targetX: WORLD_W / 2,
+          targetY: WORLD_H / 2,
+          facing: 0,
+          bobPhase: 0,
+          speed: 245,
           hp: 100,
           maxHp: 100,
-          dmg: 25,
-          moveDelay: 0.14,
+          dmg: 28,
           cleave: 0,
+          magnet: 135,
           lv: 1,
           exp: 0,
           nextExp: 50,
           kills: 0,
-          score: 0
+          score: 0,
+          hurtFlash: 0
         },
-        aimPoint: { x: 480, y: 270 },
+        camera: {
+          x: WORLD_W / 2 - viewW / 2,
+          y: WORLD_H / 2 - viewH / 2,
+          shake: 0
+        },
+        mouseScreen: { x: viewW / 2, y: viewH / 2 },
         enemies: [],
         projectiles: [],
+        gems: [],
         particles: [],
+        floatTexts: [],
+        shockwaves: [],
         pendingUpgrades: [],
-        spawnTimer: 0,
+        spawnTimer: 0.4,
         elapsed: 0,
         gameOver: false
       };
+      updateCamera();
     }
 
-    function pickWord() {
+    function clamp(v, min, max) {
+      return Math.max(min, Math.min(max, v));
+    }
+
+    function updateCamera() {
+      const p = state.player;
+      if (WORLD_W <= viewW) {
+        state.camera.x = (WORLD_W - viewW) / 2;
+      } else {
+        state.camera.x = clamp(p.x - viewW / 2, 0, WORLD_W - viewW);
+      }
+      if (WORLD_H <= viewH) {
+        state.camera.y = (WORLD_H - viewH) / 2;
+      } else {
+        state.camera.y = clamp(p.y - viewH / 2, 0, WORLD_H - viewH);
+      }
+    }
+
+    function pickUniqueWord() {
       const pool = WORDS[lang];
-      return pool[Math.floor(Math.random() * pool.length)];
+      const used = new Set(state.enemies.map((e) => e.word));
+      const available = pool.filter((w) => !used.has(w));
+      const list = available.length > 0 ? available : pool;
+      return list[Math.floor(Math.random() * list.length)];
     }
 
     function spawnEnemy() {
-      const edge = Math.floor(Math.random() * 4);
-      let gx = 0, gy = 0;
-      if (edge === 0) { gx = Math.floor(Math.random() * COLS); gy = 0; }
-      else if (edge === 1) { gx = COLS - 1; gy = Math.floor(Math.random() * ROWS); }
-      else if (edge === 2) { gx = Math.floor(Math.random() * COLS); gy = ROWS - 1; }
-      else { gx = 0; gy = Math.floor(Math.random() * ROWS); }
+      const p = state.player;
+      // Spawn around the player outside immediate safe radius, clamped inside bounded world
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 420 + Math.random() * 260;
+      const x = clamp(p.x + Math.cos(angle) * dist, 36, WORLD_W - 36);
+      const y = clamp(p.y + Math.sin(angle) * dist, 36, WORLD_H - 36);
 
-      const scale = 1 + Math.floor(state.elapsed / 25) * 0.25;
+      const roll = Math.random();
+      const waveScale = 1 + Math.floor(state.elapsed / 25) * 0.28;
+      let kind = "skitter";
+      let hp = Math.round(28 * waveScale);
+      let speed = 78 + Math.min(65, state.elapsed * 0.9);
+      let radius = 16;
+
+      if (state.elapsed > 15 && roll > 0.78) {
+        kind = "golem";
+        hp = Math.round(62 * waveScale);
+        speed = 48 + Math.min(30, state.elapsed * 0.4);
+        radius = 23;
+      } else if (state.elapsed > 8 && roll > 0.5) {
+        kind = "wraith";
+        hp = Math.round(38 * waveScale);
+        speed = 92 + Math.min(55, state.elapsed * 0.8);
+        radius = 17;
+      }
+
       state.enemies.push({
-        x: gx * GRID + GRID / 2,
-        y: gy * GRID + GRID / 2,
-        hp: Math.round(25 * scale),
-        maxHp: Math.round(25 * scale),
-        speed: 48 + Math.min(55, state.elapsed * 0.8),
-        word: pickWord(),
-        hitFlash: 0
+        x,
+        y,
+        kind,
+        hp,
+        maxHp: hp,
+        speed,
+        radius,
+        word: pickUniqueWord(),
+        hitFlash: 0,
+        phase: Math.random() * Math.PI * 2
       });
+    }
+
+    function addFloatText(x, y, text, color = "#fbbf24") {
+      state.floatTexts.push({ x, y, text, color, life: 0.75, maxLife: 0.75 });
+    }
+
+    function spawnBurst(x, y, color, count = 10) {
+      for (let i = 0; i < count; i++) {
+        const ang = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+        const spd = 70 + Math.random() * 140;
+        state.particles.push({
+          x,
+          y,
+          vx: Math.cos(ang) * spd,
+          vy: Math.sin(ang) * spd,
+          size: 2.5 + Math.random() * 2.5,
+          color,
+          life: 0.35 + Math.random() * 0.2,
+          maxLife: 0.55
+        });
+      }
     }
 
     function offerLevelUp() {
-      const shuffled = [...UPGRADES].sort(() => Math.random() - 0.5).slice(0, 3);
-      state.pendingUpgrades = shuffled;
-      levelChoices.innerHTML = "";
-      shuffled.forEach((u, idx) => {
-        const div = document.createElement("div");
-        div.className = "choice-box";
-        div.innerHTML = `<div class="choice-key">키 ${idx + 1}</div><div><strong>${u.title}</strong></div><div class="hint">${u.desc}</div>`;
-        div.onclick = () => applyUpgrade(idx);
-        levelChoices.appendChild(div);
+      const picks = [...UPGRADES].sort(() => Math.random() - 0.5).slice(0, 3);
+      state.pendingUpgrades = picks;
+      choicesGrid.innerHTML = "";
+      picks.forEach((u, i) => {
+        const card = document.createElement("div");
+        card.className = "choice-card";
+        card.innerHTML = `
+          <div class="choice-key">KEY ${i + 1}</div>
+          <div class="choice-name">${u.name}</div>
+          <div class="choice-desc">${u.desc}</div>
+        `;
+        card.onclick = () => selectUpgrade(i);
+        choicesGrid.appendChild(card);
       });
-      levelOverlay.classList.remove("hidden");
+      levelBanner.classList.remove("hidden");
+      playSfx(523, 0.25, "sine", 0.09, 880);
     }
 
-    function applyUpgrade(idx) {
-      const u = state.pendingUpgrades[idx];
+    function selectUpgrade(index) {
+      const u = state.pendingUpgrades[index];
       if (!u) return;
       const p = state.player;
-      if (u.id === "dmg") p.dmg += 12;
-      else if (u.id === "spd") p.moveDelay = Math.max(0.06, p.moveDelay * 0.82);
-      else if (u.id === "heal") p.hp = Math.min(p.maxHp, p.hp + 35);
-      else if (u.id === "cleave") p.cleave += 10;
-      else if (u.id === "maxhp") { p.maxHp += 25; p.hp += 25; }
+      if (u.id === "dmg") p.dmg += 14;
+      else if (u.id === "spd") p.speed = Math.round(p.speed * 1.16);
+      else if (u.id === "cleave") p.cleave += 14;
+      else if (u.id === "magnet") p.magnet = Math.round(p.magnet * 1.55);
+      else if (u.id === "heal") {
+        p.maxHp += 20;
+        p.hp = Math.min(p.maxHp, p.hp + 40);
+      }
 
       state.pendingUpgrades = [];
-      levelOverlay.classList.add("hidden");
-      playTone(660, 0.12, "sine");
+      levelBanner.classList.add("hidden");
+      addFloatText(p.x, p.y - 28, `${u.name}!`, "#34d399");
+      playSfx(660, 0.14, "triangle", 0.08, 990);
       wordInput.focus();
     }
 
-    function fireAtWord(rawText) {
-      const query = rawText.trim();
-      if (!query || !running || state.gameOver || softPaused) return;
+    function castWord(raw, silentMiss = false) {
+      const query = raw.trim();
+      if (!query || !running || state.gameOver || paused) return false;
 
-      const candidates = state.enemies.filter((e) => e.word === query);
-      if (candidates.length === 0) {
-        playTone(170, 0.09, "sawtooth");
-        return;
+      const matches = state.enemies.filter((e) => e.word === query);
+      if (matches.length === 0) {
+        if (!silentMiss) playSfx(160, 0.09, "sawtooth", 0.05, 110);
+        return false;
       }
 
       const p = state.player;
-      let target = candidates[0];
+      let target = matches[0];
       if (autoAim) {
-        target = candidates.reduce((best, cur) => {
-          const dBest = Math.hypot(best.x - p.x, best.y - p.y);
-          const dCur = Math.hypot(cur.x - p.x, cur.y - p.y);
-          return dCur < dBest ? cur : best;
-        });
+        target = matches.reduce((best, cur) =>
+          Math.hypot(cur.x - p.x, cur.y - p.y) < Math.hypot(best.x - p.x, best.y - p.y) ? cur : best
+        );
       } else {
-        target = candidates.reduce((best, cur) => {
-          const dBest = Math.hypot(best.x - state.aimPoint.x, best.y - state.aimPoint.y);
-          const dCur = Math.hypot(cur.x - state.aimPoint.x, cur.y - state.aimPoint.y);
-          return dCur < dBest ? cur : best;
-        });
+        const aimWorldX = state.camera.x + state.mouseScreen.x;
+        const aimWorldY = state.camera.y + state.mouseScreen.y;
+        target = matches.reduce((best, cur) =>
+          Math.hypot(cur.x - aimWorldX, cur.y - aimWorldY) < Math.hypot(best.x - aimWorldX, best.y - aimWorldY) ? cur : best
+        );
       }
 
+      p.facing = Math.atan2(target.y - p.y, target.x - p.x);
       state.projectiles.push({
         x: p.x,
         y: p.y,
         target,
         dmg: p.dmg,
-        speed: 620
+        speed: 780,
+        trail: []
       });
-      playTone(540, 0.06, "triangle");
+
+      playSfx(480, 0.09, "triangle", 0.08, 860);
+      return true;
     }
 
-    function damageEnemy(enemy, dmg) {
+    function hitEnemy(enemy, dmg) {
       enemy.hp -= dmg;
-      enemy.hitFlash = 0.12;
-      for (let i = 0; i < 6; i++) {
-        const ang = (Math.PI * 2 * i) / 6;
-        state.particles.push({
-          x: enemy.x,
-          y: enemy.y,
-          vx: Math.cos(ang) * 90,
-          vy: Math.sin(ang) * 90,
-          life: 0.25
-        });
-      }
+      enemy.hitFlash = 0.14;
+      state.camera.shake = Math.min(8, state.camera.shake + 2.5);
+      spawnBurst(enemy.x, enemy.y, "#38bdf8", 8);
+      addFloatText(enemy.x, enemy.y - 20, `-${dmg}`, "#f8fafc");
 
       if (enemy.hp <= 0) {
         const idx = state.enemies.indexOf(enemy);
@@ -535,199 +883,580 @@
 
         const p = state.player;
         p.kills += 1;
-        p.score += 100;
-        p.exp += 18;
-        playTone(780, 0.1, "square");
+        p.score += enemy.kind === "golem" ? 250 : 100;
+        spawnBurst(enemy.x, enemy.y, "#fb7185", 16);
+        state.shockwaves.push({ x: enemy.x, y: enemy.y, r: 8, maxR: p.cleave > 0 ? 110 : 48, life: 0.28 });
+        playSfx(320, 0.14, "sine", 0.09, 680);
 
+        // Drop XP Crystal
+        state.gems.push({
+          x: enemy.x,
+          y: enemy.y,
+          val: enemy.kind === "golem" ? 36 : 18,
+          bob: Math.random() * Math.PI * 2
+        });
+
+        // Cleave shockwave damage
         if (p.cleave > 0) {
           state.enemies.forEach((other) => {
-            if (Math.hypot(other.x - enemy.x, other.y - enemy.y) <= 95) {
+            if (Math.hypot(other.x - enemy.x, other.y - enemy.y) <= 110) {
               other.hp -= p.cleave;
               other.hitFlash = 0.12;
+              addFloatText(other.x, other.y - 16, `-${p.cleave}`, "#38bdf8");
             }
           });
-        }
-
-        if (p.exp >= p.nextExp && state.pendingUpgrades.length === 0) {
-          p.exp -= p.nextExp;
-          p.lv += 1;
-          p.nextExp = Math.round(p.nextExp * 1.35);
-          offerLevelUp();
         }
       }
     }
 
+    function updateWordRibbon() {
+      const p = state.player;
+      const typed = wordInput.value.trim();
+      const nearest = [...state.enemies]
+        .sort((a, b) => Math.hypot(a.x - p.x, a.y - p.y) - Math.hypot(b.x - p.x, b.y - p.y))
+        .slice(0, 5);
+
+      wordRibbon.innerHTML = "";
+      nearest.forEach((e) => {
+        const chip = document.createElement("span");
+        const isMatch = typed.length > 0 && e.word.startsWith(typed);
+        chip.className = "word-chip" + (isMatch ? " matched" : "");
+        if (isMatch) {
+          chip.innerHTML = `<span class="hl">${e.word.slice(0, typed.length)}</span>${e.word.slice(typed.length)}`;
+        } else {
+          chip.textContent = e.word;
+        }
+        wordRibbon.appendChild(chip);
+      });
+    }
+
     function update(dt) {
-      if (!running || state.gameOver || softPaused) return;
+      if (!running || state.gameOver || paused) return;
       state.elapsed += dt;
 
       const p = state.player;
-      p.moveCooldown = Math.max(0, p.moveCooldown - dt);
+      p.hurtFlash = Math.max(0, p.hurtFlash - dt);
+      state.camera.shake = Math.max(0, state.camera.shake - dt * 28);
 
-      if (p.gx !== p.targetGx || p.gy !== p.targetGy) {
-        if (p.moveCooldown === 0) {
-          const dx = Math.sign(p.targetGx - p.gx);
-          const dy = Math.sign(p.targetGy - p.gy);
-          if (dx !== 0) p.gx += dx;
-          else if (dy !== 0) p.gy += dy;
-          p.moveCooldown = p.moveDelay;
-        }
+      // Smooth constant-speed Euclidean shortest-path movement
+      if (isPointerDown) {
+        p.targetX = clamp(state.camera.x + state.mouseScreen.x, PLAYER_RADIUS + 8, WORLD_W - PLAYER_RADIUS - 8);
+        p.targetY = clamp(state.camera.y + state.mouseScreen.y, PLAYER_RADIUS + 8, WORLD_H - PLAYER_RADIUS - 8);
       }
-      const goalX = p.gx * GRID + GRID / 2;
-      const goalY = p.gy * GRID + GRID / 2;
-      p.x += (goalX - p.x) * Math.min(1, dt * 22);
-      p.y += (goalY - p.y) * Math.min(1, dt * 22);
 
+      const dx = p.targetX - p.x;
+      const dy = p.targetY - p.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist > 1.5) {
+        const step = p.speed * dt;
+        p.facing = Math.atan2(dy, dx);
+        p.bobPhase += dt * 14;
+        if (step >= dist) {
+          p.x = p.targetX;
+          p.y = p.targetY;
+        } else {
+          p.x += (dx / dist) * step;
+          p.y += (dy / dist) * step;
+        }
+        p.x = clamp(p.x, PLAYER_RADIUS + 8, WORLD_W - PLAYER_RADIUS - 8);
+        p.y = clamp(p.y, PLAYER_RADIUS + 8, WORLD_H - PLAYER_RADIUS - 8);
+      }
+
+      updateCamera();
+
+      // Enemy spawning
       state.spawnTimer -= dt;
-      const spawnInterval = Math.max(0.45, 1.5 - state.elapsed * 0.015);
+      const interval = Math.max(0.45, 1.45 - state.elapsed * 0.014);
       if (state.spawnTimer <= 0) {
         spawnEnemy();
-        state.spawnTimer = spawnInterval;
+        state.spawnTimer = interval;
       }
 
+      // Enemies AI & collision
       for (let i = state.enemies.length - 1; i >= 0; i--) {
         const e = state.enemies[i];
         if (e.hp <= 0) {
-          damageEnemy(e, 0);
+          hitEnemy(e, 0);
           continue;
         }
         e.hitFlash = Math.max(0, e.hitFlash - dt);
-        const ang = Math.atan2(p.y - e.y, p.x - e.x);
-        e.x += Math.cos(ang) * e.speed * dt;
-        e.y += Math.sin(ang) * e.speed * dt;
+        e.phase += dt * 7;
 
-        if (Math.hypot(p.x - e.x, p.y - e.y) < 28) {
-          p.hp -= 16 * dt;
+        const ang = Math.atan2(p.y - e.y, p.x - e.x);
+        e.x = clamp(e.x + Math.cos(ang) * e.speed * dt, e.radius + 8, WORLD_W - e.radius - 8);
+        e.y = clamp(e.y + Math.sin(ang) * e.speed * dt, e.radius + 8, WORLD_H - e.radius - 8);
+
+        if (Math.hypot(p.x - e.x, p.y - e.y) < PLAYER_RADIUS + e.radius - 2) {
+          p.hp -= 18 * dt;
+          p.hurtFlash = 0.15;
           if (p.hp <= 0) {
             p.hp = 0;
             state.gameOver = true;
-            finalStats.innerHTML = `생존 시간: <strong>${formatTime(state.elapsed)}</strong> · 도달 레벨: <strong>LV.${p.lv}</strong> · 처치: <strong>${p.kills}</strong> · 점수: <strong>${p.score}</strong>`;
-            gameOverOverlay.classList.remove("hidden");
+            finalSummary.innerHTML = `
+              생존 시간: <strong>${formatTime(state.elapsed)}</strong><br/>
+              도달 레벨: <strong>LV. ${p.lv}</strong><br/>
+              처치 수: <strong>${p.kills}마리</strong> · 최종 점수: <strong>${p.score}점</strong>
+            `;
+            gameOverModal.classList.remove("hidden");
           }
         }
       }
 
+      // Projectiles
       for (let i = state.projectiles.length - 1; i >= 0; i--) {
         const pr = state.projectiles[i];
         if (!pr.target || pr.target.hp <= 0) {
           state.projectiles.splice(i, 1);
           continue;
         }
-        const dx = pr.target.x - pr.x;
-        const dy = pr.target.y - pr.y;
-        const dist = Math.hypot(dx, dy);
-        if (dist < 18) {
-          damageEnemy(pr.target, pr.dmg);
+        pr.trail.push({ x: pr.x, y: pr.y });
+        if (pr.trail.length > 7) pr.trail.shift();
+
+        const tx = pr.target.x - pr.x;
+        const ty = pr.target.y - pr.y;
+        const d = Math.hypot(tx, ty);
+        if (d < pr.target.radius + 8) {
+          hitEnemy(pr.target, pr.dmg);
           state.projectiles.splice(i, 1);
         } else {
-          pr.x += (dx / dist) * pr.speed * dt;
-          pr.y += (dy / dist) * pr.speed * dt;
+          pr.x += (tx / d) * pr.speed * dt;
+          pr.y += (ty / d) * pr.speed * dt;
         }
       }
 
+      // XP Gems Magnet & Pickup
+      for (let i = state.gems.length - 1; i >= 0; i--) {
+        const g = state.gems[i];
+        g.bob += dt * 5;
+        const gd = Math.hypot(p.x - g.x, p.y - g.y);
+        if (gd < p.magnet) {
+          const pull = 360 * (1 - gd / p.magnet) + 140;
+          g.x += ((p.x - g.x) / Math.max(1, gd)) * pull * dt;
+          g.y += ((p.y - g.y) / Math.max(1, gd)) * pull * dt;
+        }
+        if (gd < PLAYER_RADIUS + 10) {
+          p.exp += g.val;
+          p.score += 15;
+          state.gems.splice(i, 1);
+          playSfx(740, 0.06, "sine", 0.05, 1040);
+
+          if (p.exp >= p.nextExp && state.pendingUpgrades.length === 0) {
+            p.exp -= p.nextExp;
+            p.lv += 1;
+            p.nextExp = Math.round(p.nextExp * 1.35);
+            offerLevelUp();
+          }
+        }
+      }
+
+      // Particles, shockwaves & float texts
       for (let i = state.particles.length - 1; i >= 0; i--) {
         const pt = state.particles[i];
         pt.x += pt.vx * dt;
         pt.y += pt.vy * dt;
+        pt.vx *= 0.94;
+        pt.vy *= 0.94;
         pt.life -= dt;
         if (pt.life <= 0) state.particles.splice(i, 1);
       }
 
-      hudHp.textContent = `HP ${Math.ceil(p.hp)}/${p.maxHp}`;
-      hudLv.textContent = `LV.${p.lv} (EXP ${p.exp}/${p.nextExp})`;
-      hudScore.textContent = `처치 ${p.kills} · 점수 ${p.score}`;
+      for (let i = state.shockwaves.length - 1; i >= 0; i--) {
+        const sw = state.shockwaves[i];
+        sw.r += (sw.maxR - sw.r) * Math.min(1, dt * 14);
+        sw.life -= dt;
+        if (sw.life <= 0) state.shockwaves.splice(i, 1);
+      }
+
+      for (let i = state.floatTexts.length - 1; i >= 0; i--) {
+        const ft = state.floatTexts[i];
+        ft.y -= 32 * dt;
+        ft.life -= dt;
+        if (ft.life <= 0) state.floatTexts.splice(i, 1);
+      }
+
+      // Update HUD
       hudTime.textContent = formatTime(state.elapsed);
+      hudHpText.textContent = `${Math.ceil(p.hp)} / ${p.maxHp}`;
+      hudHpBar.style.width = `${(p.hp / p.maxHp) * 100}%`;
+      hudLvText.textContent = `LV. ${p.lv}`;
+      hudExpText.textContent = `${p.exp} / ${p.nextExp} EXP`;
+      hudExpBar.style.width = `${Math.min(100, (p.exp / p.nextExp) * 100)}%`;
+      hudKills.textContent = `처치 ${p.kills}`;
+      hudScore.textContent = `점수 ${p.score}`;
+      hudDmg.textContent = `공격력 ${p.dmg}`;
+
+      updateWordRibbon();
     }
 
     function draw() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, viewW, viewH);
+      ctx.fillStyle = "#060911";
+      ctx.fillRect(0, 0, viewW, viewH);
 
-      // Subtle grid tiles
-      ctx.strokeStyle = "rgba(28, 28, 28, 0.06)";
+      if (!state) return;
+
+      const shakeX = state.camera.shake > 0 ? (Math.random() - 0.5) * state.camera.shake : 0;
+      const shakeY = state.camera.shake > 0 ? (Math.random() - 0.5) * state.camera.shake : 0;
+
+      ctx.save();
+      ctx.translate(-state.camera.x + shakeX, -state.camera.y + shakeY);
+
+      // Arena floor background
+      const floorGrad = ctx.createRadialGradient(
+        WORLD_W / 2, WORLD_H / 2, 120,
+        WORLD_W / 2, WORLD_H / 2, Math.max(WORLD_W, WORLD_H) * 0.7
+      );
+      floorGrad.addColorStop(0, "#11192c");
+      floorGrad.addColorStop(1, "#090e1a");
+      ctx.fillStyle = floorGrad;
+      ctx.fillRect(0, 0, WORLD_W, WORLD_H);
+
+      // Visible tactical floor tiles
+      const startCol = Math.max(0, Math.floor(state.camera.x / TILE_SIZE));
+      const endCol = Math.min(Math.ceil(WORLD_W / TILE_SIZE), Math.ceil((state.camera.x + viewW) / TILE_SIZE));
+      const startRow = Math.max(0, Math.floor(state.camera.y / TILE_SIZE));
+      const endRow = Math.min(Math.ceil(WORLD_H / TILE_SIZE), Math.ceil((state.camera.y + viewH) / TILE_SIZE));
+
+      ctx.strokeStyle = "rgba(148, 163, 184, 0.06)";
       ctx.lineWidth = 1;
-      for (let x = 0; x <= canvas.width; x += GRID) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-      }
-      for (let y = 0; y <= canvas.height; y += GRID) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-      }
-
-      if (!running && !state.player) return;
-      const p = state.player;
-
-      // Target tile highlight
-      ctx.fillStyle = "rgba(37, 99, 235, 0.14)";
-      ctx.fillRect(p.targetGx * GRID, p.targetGy * GRID, GRID, GRID);
-
-      // Mouse aim reticle when manual aim
-      if (!autoAim) {
-        ctx.strokeStyle = "#2563eb";
-        ctx.lineWidth = 2;
+      for (let c = startCol; c <= endCol; c++) {
         ctx.beginPath();
-        ctx.arc(state.aimPoint.x, state.aimPoint.y, 12, 0, Math.PI * 2);
+        ctx.moveTo(c * TILE_SIZE, startRow * TILE_SIZE);
+        ctx.lineTo(c * TILE_SIZE, endRow * TILE_SIZE);
+        ctx.stroke();
+      }
+      for (let r = startRow; r <= endRow; r++) {
+        ctx.beginPath();
+        ctx.moveTo(startCol * TILE_SIZE, r * TILE_SIZE);
+        ctx.lineTo(endCol * TILE_SIZE, r * TILE_SIZE);
         ctx.stroke();
       }
 
-      // Enemies + word tags
+      // Subtle arena center emblem
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.08)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(WORLD_W / 2, WORLD_H / 2, 180, 0, Math.PI * 2);
+      ctx.stroke();
+
+      // Glowing World Boundary Wall
+      ctx.strokeStyle = "#f43f5e";
+      ctx.lineWidth = 5;
+      ctx.shadowColor = "#f43f5e";
+      ctx.shadowBlur = 18;
+      ctx.strokeRect(2.5, 2.5, WORLD_W - 5, WORLD_H - 5);
+      ctx.shadowBlur = 0;
+
+      const p = state.player;
+
+      // Shortest-path destination line & beacon
+      const distToTarget = Math.hypot(p.targetX - p.x, p.targetY - p.y);
+      if (distToTarget > 6) {
+        ctx.save();
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.32)";
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 6]);
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.targetX, p.targetY);
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.75)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(p.targetX, p.targetY, 9 + Math.sin(state.elapsed * 8) * 2, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // XP Gems
+      state.gems.forEach((g) => {
+        const yOff = Math.sin(g.bob) * 3;
+        ctx.save();
+        ctx.translate(g.x, g.y + yOff);
+        ctx.rotate(Math.PI / 4);
+        ctx.fillStyle = g.val > 20 ? "#fbbf24" : "#38bdf8";
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.shadowBlur = 10;
+        ctx.fillRect(-5, -5, 10, 10);
+        ctx.restore();
+      });
+
+      // Shockwaves
+      state.shockwaves.forEach((sw) => {
+        ctx.strokeStyle = `rgba(56, 189, 248, ${sw.life * 2.5})`;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(sw.x, sw.y, sw.r, 0, Math.PI * 2);
+        ctx.stroke();
+      });
+
+      // Enemies & Crisp Word Tags
       const typed = wordInput.value.trim();
       state.enemies.forEach((e) => {
-        ctx.fillStyle = e.hitFlash > 0 ? "#fde047" : "#ff5e3a";
-        ctx.strokeStyle = "#1c1c1c";
-        ctx.lineWidth = 2.5;
+        // Ground shadow
+        ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
         ctx.beginPath();
-        ctx.arc(e.x, e.y, 16, 0, Math.PI * 2);
+        ctx.ellipse(e.x, e.y + e.radius - 2, e.radius * 0.9, e.radius * 0.42, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Enemy body by archetype
+        ctx.save();
+        ctx.translate(e.x, e.y);
+        if (e.kind === "golem") {
+          ctx.fillStyle = e.hitFlash > 0 ? "#ffffff" : "#334155";
+          ctx.strokeStyle = "#f59e0b";
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          for (let s = 0; s < 6; s++) {
+            const a = (Math.PI * 2 * s) / 6 + e.phase * 0.1;
+            const rx = Math.cos(a) * e.radius;
+            const ry = Math.sin(a) * e.radius;
+            if (s === 0) ctx.moveTo(rx, ry);
+            else ctx.lineTo(rx, ry);
+          }
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+          // Glowing core
+          ctx.fillStyle = "#fbbf24";
+          ctx.beginPath();
+          ctx.arc(0, 0, 6, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (e.kind === "wraith") {
+          ctx.fillStyle = e.hitFlash > 0 ? "#ffffff" : "#6d28d9";
+          ctx.strokeStyle = "#c084fc";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(0, -2, e.radius, Math.PI, 0);
+          ctx.lineTo(e.radius, e.radius * 0.8);
+          ctx.lineTo(0, e.radius * 0.4 + Math.sin(e.phase) * 3);
+          ctx.lineTo(-e.radius, e.radius * 0.8);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = e.hitFlash > 0 ? "#ffffff" : "#be123c";
+          ctx.strokeStyle = "#fb7185";
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(0, 0, e.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+
+          // Eyes
+          ctx.fillStyle = "#fef08a";
+          ctx.fillRect(-6, -3, 4, 3);
+          ctx.fillRect(2, -3, 4, 3);
+        }
+        ctx.restore();
+
+        // HP bar if damaged
+        if (e.hp < e.maxHp) {
+          const bw = e.radius * 2;
+          ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+          ctx.fillRect(e.x - bw / 2, e.y + e.radius + 6, bw, 4);
+          ctx.fillStyle = "#fb7185";
+          ctx.fillRect(e.x - bw / 2, e.y + e.radius + 6, bw * Math.max(0, e.hp / e.maxHp), 4);
+        }
+
+        // Floating word badge
+        const isMatched = typed.length > 0 && e.word.startsWith(typed);
+        ctx.font = "700 14px Pretendard, sans-serif";
+        const tw = ctx.measureText(e.word).width;
+        const padX = 9;
+        const boxW = tw + padX * 2;
+        const boxH = 23;
+        const bx = e.x - boxW / 2;
+        const by = e.y - e.radius - 31;
+
+        ctx.fillStyle = isMatched ? "rgba(30, 27, 14, 0.94)" : "rgba(10, 15, 28, 0.88)";
+        ctx.strokeStyle = isMatched ? "#fbbf24" : "rgba(148, 163, 184, 0.4)";
+        ctx.lineWidth = isMatched ? 1.8 : 1.2;
+        roundRect(ctx, bx, by, boxW, boxH, 7);
         ctx.fill();
         ctx.stroke();
 
-        const matched = typed.length > 0 && e.word.startsWith(typed);
-        ctx.font = "800 14px sans-serif";
-        const tw = ctx.measureText(e.word).width;
-        ctx.fillStyle = matched ? "#fef08a" : "#fffdf8";
-        ctx.fillRect(e.x - tw / 2 - 6, e.y - 34, tw + 12, 20);
-        ctx.strokeRect(e.x - tw / 2 - 6, e.y - 34, tw + 12, 20);
-
-        ctx.fillStyle = "#1c1c1c";
-        ctx.textAlign = "center";
-        ctx.fillText(e.word, e.x, e.y - 19);
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        const textStartX = e.x - tw / 2;
+        const textCenterY = by + boxH / 2 + 0.5;
+        if (isMatched) {
+          const prefix = e.word.slice(0, typed.length);
+          const rest = e.word.slice(typed.length);
+          ctx.fillStyle = "#fbbf24";
+          ctx.fillText(prefix, textStartX, textCenterY);
+          const pw = ctx.measureText(prefix).width;
+          ctx.fillStyle = "#f8fafc";
+          ctx.fillText(rest, textStartX + pw, textCenterY);
+        } else {
+          ctx.fillStyle = "#f1f5f9";
+          ctx.fillText(e.word, textStartX, textCenterY);
+        }
       });
 
-      // Projectiles
-      ctx.fillStyle = "#2563eb";
+      // Projectiles with glowing trail
       state.projectiles.forEach((pr) => {
+        pr.trail.forEach((pt, idx) => {
+          const alpha = (idx + 1) / pr.trail.length;
+          ctx.fillStyle = `rgba(56, 189, 248, ${alpha * 0.45})`;
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, 4 * alpha, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.fillStyle = "#e0f2fe";
+        ctx.shadowColor = "#38bdf8";
+        ctx.shadowBlur = 14;
         ctx.beginPath();
         ctx.arc(pr.x, pr.y, 6, 0, Math.PI * 2);
         ctx.fill();
+        ctx.shadowBlur = 0;
       });
 
       // Particles
       state.particles.forEach((pt) => {
-        ctx.fillStyle = "#1c1c1c";
-        ctx.fillRect(pt.x - 3, pt.y - 3, 6, 6);
+        ctx.globalAlpha = Math.max(0, pt.life / pt.maxLife);
+        ctx.fillStyle = pt.color;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+        ctx.fill();
       });
+      ctx.globalAlpha = 1;
 
-      // Player
-      ctx.fillStyle = "#fde047";
-      ctx.strokeStyle = "#1c1c1c";
-      ctx.lineWidth = 3;
+      // Player Character (Arcane Scribe)
+      const bob = distToTarget > 2 ? Math.sin(p.bobPhase) * 2.2 : 0;
+      ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
       ctx.beginPath();
-      ctx.arc(p.x, p.y, 18, 0, Math.PI * 2);
+      ctx.ellipse(p.x, p.y + PLAYER_RADIUS, 16, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Subtle magnet aura ring
+      ctx.strokeStyle = "rgba(56, 189, 248, 0.08)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.magnet, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.save();
+      ctx.translate(p.x, p.y + bob);
+
+      // Cloak & body
+      ctx.fillStyle = p.hurtFlash > 0 ? "#fb7185" : "#1d4ed8";
+      ctx.strokeStyle = "#93c5fd";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(0, 0, PLAYER_RADIUS, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = "#1c1c1c";
+      // Hood visor
+      ctx.fillStyle = "#0f172a";
       ctx.beginPath();
-      ctx.arc(p.x - 5, p.y - 3, 2.5, 0, Math.PI * 2);
-      ctx.arc(p.x + 5, p.y - 3, 2.5, 0, Math.PI * 2);
+      ctx.arc(Math.cos(p.facing) * 3, Math.sin(p.facing) * 3, 10, 0, Math.PI * 2);
       ctx.fill();
 
-      if (softPaused) {
-        ctx.fillStyle = "rgba(28, 28, 28, 0.45)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "#fffdf8";
-        ctx.font = "900 28px sans-serif";
+      // Glowing eyes
+      ctx.fillStyle = "#38bdf8";
+      ctx.beginPath();
+      ctx.arc(Math.cos(p.facing) * 6 - 3, Math.sin(p.facing) * 6 - 1, 2.2, 0, Math.PI * 2);
+      ctx.arc(Math.cos(p.facing) * 6 + 3, Math.sin(p.facing) * 6 - 1, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Orbiting arcane crystal staff orb
+      const orbAngle = state.elapsed * 3.5;
+      const ox = Math.cos(orbAngle) * 26;
+      const oy = Math.sin(orbAngle) * 26;
+      ctx.fillStyle = "#fbbf24";
+      ctx.shadowColor = "#fbbf24";
+      ctx.shadowBlur = 12;
+      ctx.beginPath();
+      ctx.arc(ox, oy, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      ctx.restore();
+
+      // Floating damage/status texts
+      state.floatTexts.forEach((ft) => {
+        ctx.globalAlpha = Math.max(0, ft.life / ft.maxLife);
+        ctx.font = "800 14px Pretendard, sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText("일시정지 (투표 통과)", canvas.width / 2, canvas.height / 2);
+        ctx.fillStyle = ft.color;
+        ctx.fillText(ft.text, ft.x, ft.y);
+      });
+      ctx.globalAlpha = 1;
+
+      ctx.restore();
+
+      // Manual aim reticle
+      if (!autoAim && running && !state.gameOver) {
+        ctx.strokeStyle = "#38bdf8";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(state.mouseScreen.x, state.mouseScreen.y, 14, 0, Math.PI * 2);
+        ctx.stroke();
       }
+
+      // Pause overlay
+      if (paused) {
+        ctx.fillStyle = "rgba(7, 10, 18, 0.58)";
+        ctx.fillRect(0, 0, viewW, viewH);
+        ctx.fillStyle = "#f8fafc";
+        ctx.font = "800 28px Pretendard, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("일시정지", viewW / 2, viewH / 2);
+      }
+
+      drawMinimap();
+    }
+
+    function drawMinimap() {
+      const mw = miniCanvas.width;
+      const mh = miniCanvas.height;
+      miniCtx.clearRect(0, 0, mw, mh);
+
+      // Map bounds
+      miniCtx.strokeStyle = "rgba(244, 63, 94, 0.65)";
+      miniCtx.lineWidth = 1.5;
+      miniCtx.strokeRect(1, 1, mw - 2, mh - 2);
+
+      // Camera viewport box
+      const vx = (state.camera.x / WORLD_W) * mw;
+      const vy = (state.camera.y / WORLD_H) * mh;
+      const vw = (viewW / WORLD_W) * mw;
+      const vh = (viewH / WORLD_H) * mh;
+      miniCtx.strokeStyle = "rgba(148, 163, 184, 0.45)";
+      miniCtx.lineWidth = 1;
+      miniCtx.strokeRect(vx, vy, vw, vh);
+
+      // Enemies
+      miniCtx.fillStyle = "#fb7185";
+      state.enemies.forEach((e) => {
+        miniCtx.fillRect((e.x / WORLD_W) * mw - 1.5, (e.y / WORLD_H) * mh - 1.5, 3, 3);
+      });
+
+      // Player
+      const px = (state.player.x / WORLD_W) * mw;
+      const py = (state.player.y / WORLD_H) * mh;
+      miniCtx.fillStyle = "#38bdf8";
+      miniCtx.beginPath();
+      miniCtx.arc(px, py, 3.5, 0, Math.PI * 2);
+      miniCtx.fill();
+    }
+
+    function roundRect(c, x, y, w, h, r) {
+      c.beginPath();
+      c.moveTo(x + r, y);
+      c.lineTo(x + w - r, y);
+      c.quadraticCurveTo(x + w, y, x + w, y + r);
+      c.lineTo(x + w, y + h - r);
+      c.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      c.lineTo(x + r, y + h);
+      c.quadraticCurveTo(x, y + h, x, y + h - r);
+      c.lineTo(x, y + r);
+      c.quadraticCurveTo(x, y, x + r, y);
+      c.closePath();
     }
 
     function formatTime(sec) {
@@ -745,88 +1474,129 @@
     }
     requestAnimationFrame(loop);
 
-    canvas.addEventListener("mousemove", (e) => {
-      const rect = canvas.getBoundingClientRect();
-      state.aimPoint.x = ((e.clientX - rect.left) / rect.width) * canvas.width;
-      state.aimPoint.y = ((e.clientY - rect.top) / rect.height) * canvas.height;
-    });
-
-    canvas.addEventListener("click", (e) => {
-      if (!running || state.gameOver || !state.player) return;
-      const rect = canvas.getBoundingClientRect();
-      const cx = ((e.clientX - rect.left) / rect.width) * canvas.width;
-      const cy = ((e.clientY - rect.top) / rect.height) * canvas.height;
-      state.player.targetGx = Math.max(0, Math.min(COLS - 1, Math.floor(cx / GRID)));
-      state.player.targetGy = Math.max(0, Math.min(ROWS - 1, Math.floor(cy / GRID)));
+    // Pointer movement (Click or hold-drag to steer smoothly)
+    canvas.addEventListener("pointerdown", (e) => {
+      if (!running || state.gameOver || !state) return;
+      isPointerDown = true;
+      state.mouseScreen.x = e.clientX;
+      state.mouseScreen.y = e.clientY;
+      state.player.targetX = clamp(state.camera.x + e.clientX, PLAYER_RADIUS + 8, WORLD_W - PLAYER_RADIUS - 8);
+      state.player.targetY = clamp(state.camera.y + e.clientY, PLAYER_RADIUS + 8, WORLD_H - PLAYER_RADIUS - 8);
       wordInput.focus();
     });
+
+    window.addEventListener("pointermove", (e) => {
+      if (!state) return;
+      state.mouseScreen.x = e.clientX;
+      state.mouseScreen.y = e.clientY;
+    });
+
+    window.addEventListener("pointerup", () => {
+      isPointerDown = false;
+    });
+
+    // Always-ready Typing & Smart Auto-Cast
+    wordInput.addEventListener("compositionstart", () => {
+      isComposing = true;
+      clearTimeout(autoCastTimer);
+    });
+
+    wordInput.addEventListener("compositionend", () => {
+      isComposing = false;
+      tryAutoCast();
+    });
+
+    wordInput.addEventListener("input", () => {
+      playSfx(920, 0.025, "sine", 0.025);
+      clearTimeout(autoCastTimer);
+      if (!isComposing) {
+        tryAutoCast();
+      } else {
+        // Brief debounce for completed Korean syllables so Space/Enter isn't always mandatory
+        autoCastTimer = setTimeout(() => {
+          tryAutoCast();
+        }, 210);
+      }
+    });
+
+    function tryAutoCast() {
+      if (!state || !running || state.gameOver || paused) return;
+      const val = wordInput.value.trim();
+      if (!val) return;
+      const exactMatch = state.enemies.some((e) => e.word === val);
+      const longerPrefixExists = state.enemies.some((e) => e.word !== val && e.word.startsWith(val));
+      if (exactMatch && !longerPrefixExists) {
+        if (castWord(val, true)) {
+          wordInput.value = "";
+        }
+      }
+    }
 
     wordInput.addEventListener("keydown", (e) => {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        fireAtWord(wordInput.value);
+        clearTimeout(autoCastTimer);
+        castWord(wordInput.value, false);
         wordInput.value = "";
       }
     });
 
+    // Global key capture so user never needs to click the input box
     window.addEventListener("keydown", (e) => {
+      if (!running || state.gameOver) return;
       if (state.pendingUpgrades.length > 0 && ["1", "2", "3"].includes(e.key)) {
-        applyUpgrade(Number(e.key) - 1);
+        e.preventDefault();
+        selectUpgrade(Number(e.key) - 1);
+        return;
+      }
+      if (document.activeElement !== wordInput && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        wordInput.focus();
       }
     });
 
-    aimToggleBtn.onclick = () => {
+    aimBtn.onclick = () => {
       autoAim = !autoAim;
-      aimToggleBtn.textContent = `조준: ${autoAim ? "자동" : "마우스"}`;
-      aimToggleBtn.classList.toggle("active-toggle", autoAim);
+      aimBtn.textContent = `조준: ${autoAim ? "자동" : "마우스"}`;
+      aimBtn.classList.toggle("active", autoAim);
+      wordInput.focus();
     };
 
-    soundToggleBtn.onclick = () => {
+    soundBtn.onclick = () => {
       soundOn = !soundOn;
-      soundToggleBtn.textContent = `소리: ${soundOn ? "ON" : "OFF"}`;
+      soundBtn.textContent = `사운드: ${soundOn ? "ON" : "OFF"}`;
+      soundBtn.classList.toggle("active", soundOn);
+      wordInput.focus();
     };
 
-    votePauseBtn.onclick = () => {
+    pauseBtn.onclick = () => {
       if (!running || state.gameOver) return;
-      softPaused = !softPaused;
-      votePauseBtn.textContent = softPaused ? "재개 투표" : "일시정지 투표";
+      paused = !paused;
+      pauseBtn.textContent = paused ? "재개" : "일시정지";
+      pauseBtn.classList.toggle("active", !paused);
+      if (!paused) wordInput.focus();
     };
 
     document.querySelectorAll(".lang-btn").forEach((btn) => {
       btn.onclick = () => {
         lang = btn.dataset.lang;
-        document.querySelectorAll(".lang-btn").forEach((b) => b.classList.remove("active-toggle"));
-        btn.classList.add("active-toggle");
+        document.querySelectorAll(".lang-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
       };
     });
 
-    document.querySelectorAll(".mode-btn").forEach((btn) => {
-      btn.onclick = () => {
-        mode = btn.dataset.mode;
-        document.querySelectorAll(".mode-btn").forEach((b) => b.classList.remove("active-toggle"));
-        btn.classList.add("active-toggle");
-      };
-    });
-
-    document.getElementById("startBtn").onclick = () => {
-      resetState();
+    function startGame() {
+      initState();
       running = true;
-      softPaused = false;
-      startOverlay.classList.add("hidden");
-      gameOverOverlay.classList.add("hidden");
-      levelOverlay.classList.add("hidden");
+      paused = false;
+      startModal.classList.add("hidden");
+      gameOverModal.classList.add("hidden");
+      levelBanner.classList.add("hidden");
       wordInput.value = "";
       wordInput.focus();
-    };
+    }
 
-    document.getElementById("restartBtn").onclick = () => {
-      resetState();
-      running = true;
-      softPaused = false;
-      gameOverOverlay.classList.add("hidden");
-      wordInput.value = "";
-      wordInput.focus();
-    };
+    document.getElementById("startBtn").onclick = startGame;
+    document.getElementById("restartBtn").onclick = startGame;
   </script>
 </body>
 </html>
