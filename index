@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Taja. Survivors — v1</title>
+  <style>
+    :root {
+      --bg-paper: #f7f4eb;
+      --grid-line: rgba(42, 42, 42, 0.08);
+      --ink: #1c1c1c;
+      --panel: #fffdf8;
+      --accent: #ff5e3a;
+      --accent-2: #2563eb;
+      --ok: #16a34a;
+      --warn: #d97706;
+      --border: 3px solid #1c1c1c;
+      --shadow: 4px 4px 0px #1c1c1c;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Pretendard", "Noto Sans KR", system-ui, -apple-system, sans-serif;
+      color: var(--ink);
+      background-color: var(--bg-paper);
+      background-image:
+        linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+      background-size: 24px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      gap: 10px;
+    }
+
+    .topbar {
+      width: min(1000px, 100%);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      background: var(--panel);
+      border: var(--border);
+      box-shadow: var(--shadow);
+      padding: 10px 14px;
+      border-radius: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 900;
+      font-size: 1.2rem;
+    }
+
+    .badge {
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 2px solid var(--ink);
+      background: #fde047;
+      font-weight: 800;
+    }
+
+    .hud-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    .pill {
+      background: #fff;
+      border: 2px solid var(--ink);
+      border-radius: 8px;
+      padding: 4px 10px;
+    }
+
+    button {
+      font-family: inherit;
+      font-weight: 800;
+      border: 2.5px solid var(--ink);
+      box-shadow: 2px 2px 0 var(--ink);
+      background: #fff;
+      color: var(--ink);
+      border-radius: 8px;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: transform 0.06s ease;
+    }
+
+    button:active {
+      transform: translate(2px, 2px);
+      box-shadow: none;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    button.active-toggle {
+      background: #bfdbfe;
+    }
+
+    .stage-wrap {
+      position: relative;
+      width: min(1000px, 100%);
+      aspect-ratio: 16 / 9;
+      background: var(--panel);
+      border: var(--border);
+      box-shadow: var(--shadow);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .typing-bar {
+      width: min(1000px, 100%);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--panel);
+      border: var(--border);
+      box-shadow: var(--shadow);
+      padding: 10px 14px;
+      border-radius: 12px;
+    }
+
+    .typing-label {
+      font-weight: 900;
+      white-space: nowrap;
+      background: #ffedd5;
+      border: 2px solid var(--ink);
+      padding: 5px 10px;
+      border-radius: 8px;
+    }
+
+    #wordInput {
+      flex: 1;
+      font-family: inherit;
+      font-size: 1.15rem;
+      font-weight: 800;
+      padding: 8px 12px;
+      border: 2.5px solid var(--ink);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      outline: none;
+    }
+
+    #wordInput:focus {
+      background: #fef9c3;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(247, 244, 235, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 10;
+    }
+
+    .overlay.hidden {
+      display: none;
+    }
+
+    .card {
+      width: min(560px, 100%);
+      background: var(--panel);
+      border: var(--border);
+      box-shadow: 6px 6px 0 var(--ink);
+      border-radius: 14px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card h2 {
+      margin: 0;
+      font-size: 1.4rem;
+    }
+
+    .option-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .level-choices {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .choice-box {
+      background: #fff;
+      border: 2.5px solid var(--ink);
+      box-shadow: 3px 3px 0 var(--ink);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: left;
+    }
+
+    .choice-key {
+      display: inline-block;
+      background: #fde047;
+      border: 2px solid var(--ink);
+      border-radius: 6px;
+      padding: 1px 7px;
+      font-weight: 900;
+      margin-bottom: 6px;
+    }
+
+    .hint {
+      font-size: 0.85rem;
+      color: #444;
+      line-height: 1.45;
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">
+      <!-- SVG Avatar -->
+      <svg width="34" height="34" viewBox="0 0 36 36" aria-hidden="true">
+        <rect x="3" y="3" width="30" height="30" rx="8" fill="#fde047" stroke="#1c1c1c" stroke-width="3"/>
+        <circle cx="13" cy="16" r="2.8" fill="#1c1c1c"/>
+        <circle cx="23" cy="16" r="2.8" fill="#1c1c1c"/>
+        <path d="M12 23 Q18 28 24 23" fill="none" stroke="#1c1c1c" stroke-width="2.8" stroke-linecap="round"/>
+      </svg>
+      <span>Taja. Survivors</span>
+      <span class="badge">v1 SINGLE</span>
+    </div>
+
+    <div class="hud-group">
+      <span class="pill" id="hudHp">HP 100/100</span>
+      <span class="pill" id="hudLv">LV.1 (EXP 0/50)</span>
+      <span class="pill" id="hudScore">처치 0 · 점수 0</span>
+      <span class="pill" id="hudTime">00:00</span>
+      <button id="aimToggleBtn" class="active-toggle">조준: 자동</button>
+      <button id="soundToggleBtn">소리: ON</button>
+      <button id="votePauseBtn">일시정지 투표</button>
+    </div>
+  </div>
+
+  <div class="stage-wrap">
+    <canvas id="gameCanvas" width="960" height="540"></canvas>
+
+    <!-- Start / Lobby Overlay -->
+    <div id="startOverlay" class="overlay">
+      <div class="card">
+        <h2>Taja. Survivors — v1 프로토타입</h2>
+        <div class="hint">
+          • <strong>이동:</strong> 캔버스 클릭으로 그리드 칸 이동 (실시간 진행)<br />
+          • <strong>공격:</strong> 아래 입력창에 화면의 단어를 치고 <strong>Enter</strong> 또는 <strong>Space</strong><br />
+          • <strong>레벨업:</strong> 게임이 멈추지 않으니 <strong>1, 2, 3</strong> 키로 즉시 업그레이드 선택!
+        </div>
+
+        <div>
+          <strong>언어 / 단어 풀</strong>
+          <div class="option-row" style="margin-top:6px;">
+            <button data-lang="ko" class="lang-btn active-toggle">한글 단어</button>
+            <button data-lang="en" class="lang-btn">English Words</button>
+          </div>
+        </div>
+
+        <div>
+          <strong>모드 프리뷰</strong>
+          <div class="option-row" style="margin-top:6px;">
+            <button data-mode="coop" class="mode-btn active-toggle">협동 (Co-op)</button>
+            <button data-mode="pvpve" class="mode-btn">경쟁 (PvPvE · 직접피해 없음)</button>
+          </div>
+        </div>
+
+        <button id="startBtn" class="primary" style="padding:10px; font-size:1.05rem;">게임 시작</button>
+      </div>
+    </div>
+
+    <!-- Non-pausing Level Up Banner -->
+    <div id="levelOverlay" class="overlay hidden" style="background: rgba(28, 28, 28, 0.25); align-items: flex-start;">
+      <div class="card" style="margin-top: 12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <strong>⚡ 레벨업! (게임은 계속 진행 중 — 1, 2, 3 키를 누르세요)</strong>
+        </div>
+        <div id="levelChoices" class="level-choices"></div>
+      </div>
+    </div>
+
+    <!-- Game Over Overlay -->
+    <div id="gameOverOverlay" class="overlay hidden">
+      <div class="card">
+        <h2>게임 오버!</h2>
+        <div id="finalStats" class="hint" style="font-size:1rem; color:#1c1c1c;"></div>
+        <button id="restartBtn" class="primary" style="padding:10px;">다시 플레이</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="typing-bar">
+    <span class="typing-label">타자 공격</span>
+    <input id="wordInput" type="text" autocomplete="off" spellcheck="false" placeholder="단어를 입력하고 Enter 또는 Space..." />
+  </div>
+
+  <script>
+    const GRID = 48;
+    const COLS = Math.floor(960 / GRID);
+    const ROWS = Math.floor(540 / GRID);
+
+    const WORDS = {
+      ko: [
+        "타자", "속도", "바람", "번개", "방패", "칼날", "불꽃", "구름", "폭풍", "거울",
+        "그림자", "빛줄기", "심장", "연필", "노트", "도장", "문장", "단어", "승리", "생존",
+        "모험", "용기", "정확", "연타", "폭발", "수호", "질주", "궤도", "파동", "신화"
+      ],
+      en: [
+        "type", "dash", "bolt", "nova", "shield", "blade", "spark", "storm", "pulse", "focus",
+        "glyph", "echo", "drift", "prism", "vigor", "strike", "swift", "orbit", "surge", "relic"
+      ]
+    };
+
+    const UPGRADES = [
+      { id: "dmg", title: "공격력 +12", desc: "단어 처치 피해량 증가" },
+      { id: "spd", title: "이동속도 +18%", desc: "그리드 이동 쿨타임 단축" },
+      { id: "heal", title: "체력 +35 회복", desc: "현재 HP 즉시 회복" },
+      { id: "cleave", title: "광역 파동", desc: "적 처치 시 주변 적에게 10 피해" },
+      { id: "maxhp", title: "최대 체력 +25", desc: "최대 HP와 현재 HP 상승" }
+    ];
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const wordInput = document.getElementById("wordInput");
+
+    const hudHp = document.getElementById("hudHp");
+    const hudLv = document.getElementById("hudLv");
+    const hudScore = document.getElementById("hudScore");
+    const hudTime = document.getElementById("hudTime");
+    const aimToggleBtn = document.getElementById("aimToggleBtn");
+    const soundToggleBtn = document.getElementById("soundToggleBtn");
+    const votePauseBtn = document.getElementById("votePauseBtn");
+
+    const startOverlay = document.getElementById("startOverlay");
+    const levelOverlay = document.getElementById("levelOverlay");
+    const levelChoices = document.getElementById("levelChoices");
+    const gameOverOverlay = document.getElementById("gameOverOverlay");
+    const finalStats = document.getElementById("finalStats");
+
+    let lang = "ko";
+    let mode = "coop";
+    let autoAim = true;
+    let soundOn = true;
+    let softPaused = false;
+    let running = false;
+
+    let audioCtx = null;
+    function playTone(freq = 440, duration = 0.08, type = "triangle") {
+      if (!soundOn) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (_) {}
+    }
+
+    let state = {};
+    function resetState() {
+      state = {
+        player: {
+          gx: Math.floor(COLS / 2),
+          gy: Math.floor(ROWS / 2),
+          x: Math.floor(COLS / 2) * GRID + GRID / 2,
+          y: Math.floor(ROWS / 2) * GRID + GRID / 2,
+          targetGx: Math.floor(COLS / 2),
+          targetGy: Math.floor(ROWS / 2),
+          moveCooldown: 0,
+          hp: 100,
+          maxHp: 100,
+          dmg: 25,
+          moveDelay: 0.14,
+          cleave: 0,
+          lv: 1,
+          exp: 0,
+          nextExp: 50,
+          kills: 0,
+          score: 0
+        },
+        aimPoint: { x: 480, y: 270 },
+        enemies: [],
+        projectiles: [],
+        particles: [],
+        pendingUpgrades: [],
+        spawnTimer: 0,
+        elapsed: 0,
+        gameOver: false
+      };
+    }
+
+    function pickWord() {
+      const pool = WORDS[lang];
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    function spawnEnemy() {
+      const edge = Math.floor(Math.random() * 4);
+      let gx = 0, gy = 0;
+      if (edge === 0) { gx = Math.floor(Math.random() * COLS); gy = 0; }
+      else if (edge === 1) { gx = COLS - 1; gy = Math.floor(Math.random() * ROWS); }
+      else if (edge === 2) { gx = Math.floor(Math.random() * COLS); gy = ROWS - 1; }
+      else { gx = 0; gy = Math.floor(Math.random() * ROWS); }
+
+      const scale = 1 + Math.floor(state.elapsed / 25) * 0.25;
+      state.enemies.push({
+        x: gx * GRID + GRID / 2,
+        y: gy * GRID + GRID / 2,
+        hp: Math.round(25 * scale),
+        maxHp: Math.round(25 * scale),
+        speed: 48 + Math.min(55, state.elapsed * 0.8),
+        word: pickWord(),
+        hitFlash: 0
+      });
+    }
+
+    function offerLevelUp() {
+      const shuffled = [...UPGRADES].sort(() => Math.random() - 0.5).slice(0, 3);
+      state.pendingUpgrades = shuffled;
+      levelChoices.innerHTML = "";
+      shuffled.forEach((u, idx) => {
+        const div = document.createElement("div");
+        div.className = "choice-box";
+        div.innerHTML = `<div class="choice-key">키 ${idx + 1}</div><div><strong>${u.title}</strong></div><div class="hint">${u.desc}</div>`;
+        div.onclick = () => applyUpgrade(idx);
+        levelChoices.appendChild(div);
+      });
+      levelOverlay.classList.remove("hidden");
+    }
+
+    function applyUpgrade(idx) {
+      const u = state.pendingUpgrades[idx];
+      if (!u) return;
+      const p = state.player;
+      if (u.id === "dmg") p.dmg += 12;
+      else if (u.id === "spd") p.moveDelay = Math.max(0.06, p.moveDelay * 0.82);
+      else if (u.id === "heal") p.hp = Math.min(p.maxHp, p.hp + 35);
+      else if (u.id === "cleave") p.cleave += 10;
+      else if (u.id === "maxhp") { p.maxHp += 25; p.hp += 25; }
+
+      state.pendingUpgrades = [];
+      levelOverlay.classList.add("hidden");
+      playTone(660, 0.12, "sine");
+      wordInput.focus();
+    }
+
+    function fireAtWord(rawText) {
+      const query = rawText.trim();
+      if (!query || !running || state.gameOver || softPaused) return;
+
+      const candidates = state.enemies.filter((e) => e.word === query);
+      if (candidates.length === 0) {
+        playTone(170, 0.09, "sawtooth");
+        return;
+      }
+
+      const p = state.player;
+      let target = candidates[0];
+      if (autoAim) {
+        target = candidates.reduce((best, cur) => {
+          const dBest = Math.hypot(best.x - p.x, best.y - p.y);
+          const dCur = Math.hypot(cur.x - p.x, cur.y - p.y);
+          return dCur < dBest ? cur : best;
+        });
+      } else {
+        target = candidates.reduce((best, cur) => {
+          const dBest = Math.hypot(best.x - state.aimPoint.x, best.y - state.aimPoint.y);
+          const dCur = Math.hypot(cur.x - state.aimPoint.x, cur.y - state.aimPoint.y);
+          return dCur < dBest ? cur : best;
+        });
+      }
+
+      state.projectiles.push({
+        x: p.x,
+        y: p.y,
+        target,
+        dmg: p.dmg,
+        speed: 620
+      });
+      playTone(540, 0.06, "triangle");
+    }
+
+    function damageEnemy(enemy, dmg) {
+      enemy.hp -= dmg;
+      enemy.hitFlash = 0.12;
+      for (let i = 0; i < 6; i++) {
+        const ang = (Math.PI * 2 * i) / 6;
+        state.particles.push({
+          x: enemy.x,
+          y: enemy.y,
+          vx: Math.cos(ang) * 90,
+          vy: Math.sin(ang) * 90,
+          life: 0.25
+        });
+      }
+
+      if (enemy.hp <= 0) {
+        const idx = state.enemies.indexOf(enemy);
+        if (idx !== -1) state.enemies.splice(idx, 1);
+
+        const p = state.player;
+        p.kills += 1;
+        p.score += 100;
+        p.exp += 18;
+        playTone(780, 0.1, "square");
+
+        if (p.cleave > 0) {
+          state.enemies.forEach((other) => {
+            if (Math.hypot(other.x - enemy.x, other.y - enemy.y) <= 95) {
+              other.hp -= p.cleave;
+              other.hitFlash = 0.12;
+            }
+          });
+        }
+
+        if (p.exp >= p.nextExp && state.pendingUpgrades.length === 0) {
+          p.exp -= p.nextExp;
+          p.lv += 1;
+          p.nextExp = Math.round(p.nextExp * 1.35);
+          offerLevelUp();
+        }
+      }
+    }
+
+    function update(dt) {
+      if (!running || state.gameOver || softPaused) return;
+      state.elapsed += dt;
+
+      const p = state.player;
+      p.moveCooldown = Math.max(0, p.moveCooldown - dt);
+
+      if (p.gx !== p.targetGx || p.gy !== p.targetGy) {
+        if (p.moveCooldown === 0) {
+          const dx = Math.sign(p.targetGx - p.gx);
+          const dy = Math.sign(p.targetGy - p.gy);
+          if (dx !== 0) p.gx += dx;
+          else if (dy !== 0) p.gy += dy;
+          p.moveCooldown = p.moveDelay;
+        }
+      }
+      const goalX = p.gx * GRID + GRID / 2;
+      const goalY = p.gy * GRID + GRID / 2;
+      p.x += (goalX - p.x) * Math.min(1, dt * 22);
+      p.y += (goalY - p.y) * Math.min(1, dt * 22);
+
+      state.spawnTimer -= dt;
+      const spawnInterval = Math.max(0.45, 1.5 - state.elapsed * 0.015);
+      if (state.spawnTimer <= 0) {
+        spawnEnemy();
+        state.spawnTimer = spawnInterval;
+      }
+
+      for (let i = state.enemies.length - 1; i >= 0; i--) {
+        const e = state.enemies[i];
+        if (e.hp <= 0) {
+          damageEnemy(e, 0);
+          continue;
+        }
+        e.hitFlash = Math.max(0, e.hitFlash - dt);
+        const ang = Math.atan2(p.y - e.y, p.x - e.x);
+        e.x += Math.cos(ang) * e.speed * dt;
+        e.y += Math.sin(ang) * e.speed * dt;
+
+        if (Math.hypot(p.x - e.x, p.y - e.y) < 28) {
+          p.hp -= 16 * dt;
+          if (p.hp <= 0) {
+            p.hp = 0;
+            state.gameOver = true;
+            finalStats.innerHTML = `생존 시간: <strong>${formatTime(state.elapsed)}</strong> · 도달 레벨: <strong>LV.${p.lv}</strong> · 처치: <strong>${p.kills}</strong> · 점수: <strong>${p.score}</strong>`;
+            gameOverOverlay.classList.remove("hidden");
+          }
+        }
+      }
+
+      for (let i = state.projectiles.length - 1; i >= 0; i--) {
+        const pr = state.projectiles[i];
+        if (!pr.target || pr.target.hp <= 0) {
+          state.projectiles.splice(i, 1);
+          continue;
+        }
+        const dx = pr.target.x - pr.x;
+        const dy = pr.target.y - pr.y;
+        const dist = Math.hypot(dx, dy);
+        if (dist < 18) {
+          damageEnemy(pr.target, pr.dmg);
+          state.projectiles.splice(i, 1);
+        } else {
+          pr.x += (dx / dist) * pr.speed * dt;
+          pr.y += (dy / dist) * pr.speed * dt;
+        }
+      }
+
+      for (let i = state.particles.length - 1; i >= 0; i--) {
+        const pt = state.particles[i];
+        pt.x += pt.vx * dt;
+        pt.y += pt.vy * dt;
+        pt.life -= dt;
+        if (pt.life <= 0) state.particles.splice(i, 1);
+      }
+
+      hudHp.textContent = `HP ${Math.ceil(p.hp)}/${p.maxHp}`;
+      hudLv.textContent = `LV.${p.lv} (EXP ${p.exp}/${p.nextExp})`;
+      hudScore.textContent = `처치 ${p.kills} · 점수 ${p.score}`;
+      hudTime.textContent = formatTime(state.elapsed);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Subtle grid tiles
+      ctx.strokeStyle = "rgba(28, 28, 28, 0.06)";
+      ctx.lineWidth = 1;
+      for (let x = 0; x <= canvas.width; x += GRID) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      }
+      for (let y = 0; y <= canvas.height; y += GRID) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
+
+      if (!running && !state.player) return;
+      const p = state.player;
+
+      // Target tile highlight
+      ctx.fillStyle = "rgba(37, 99, 235, 0.14)";
+      ctx.fillRect(p.targetGx * GRID, p.targetGy * GRID, GRID, GRID);
+
+      // Mouse aim reticle when manual aim
+      if (!autoAim) {
+        ctx.strokeStyle = "#2563eb";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(state.aimPoint.x, state.aimPoint.y, 12, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Enemies + word tags
+      const typed = wordInput.value.trim();
+      state.enemies.forEach((e) => {
+        ctx.fillStyle = e.hitFlash > 0 ? "#fde047" : "#ff5e3a";
+        ctx.strokeStyle = "#1c1c1c";
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(e.x, e.y, 16, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        const matched = typed.length > 0 && e.word.startsWith(typed);
+        ctx.font = "800 14px sans-serif";
+        const tw = ctx.measureText(e.word).width;
+        ctx.fillStyle = matched ? "#fef08a" : "#fffdf8";
+        ctx.fillRect(e.x - tw / 2 - 6, e.y - 34, tw + 12, 20);
+        ctx.strokeRect(e.x - tw / 2 - 6, e.y - 34, tw + 12, 20);
+
+        ctx.fillStyle = "#1c1c1c";
+        ctx.textAlign = "center";
+        ctx.fillText(e.word, e.x, e.y - 19);
+      });
+
+      // Projectiles
+      ctx.fillStyle = "#2563eb";
+      state.projectiles.forEach((pr) => {
+        ctx.beginPath();
+        ctx.arc(pr.x, pr.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Particles
+      state.particles.forEach((pt) => {
+        ctx.fillStyle = "#1c1c1c";
+        ctx.fillRect(pt.x - 3, pt.y - 3, 6, 6);
+      });
+
+      // Player
+      ctx.fillStyle = "#fde047";
+      ctx.strokeStyle = "#1c1c1c";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 18, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "#1c1c1c";
+      ctx.beginPath();
+      ctx.arc(p.x - 5, p.y - 3, 2.5, 0, Math.PI * 2);
+      ctx.arc(p.x + 5, p.y - 3, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      if (softPaused) {
+        ctx.fillStyle = "rgba(28, 28, 28, 0.45)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#fffdf8";
+        ctx.font = "900 28px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("일시정지 (투표 통과)", canvas.width / 2, canvas.height / 2);
+      }
+    }
+
+    function formatTime(sec) {
+      const s = Math.floor(sec);
+      return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+    }
+
+    let lastTime = performance.now();
+    function loop(now) {
+      const dt = Math.min(0.05, (now - lastTime) / 1000);
+      lastTime = now;
+      update(dt);
+      draw();
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    canvas.addEventListener("mousemove", (e) => {
+      const rect = canvas.getBoundingClientRect();
+      state.aimPoint.x = ((e.clientX - rect.left) / rect.width) * canvas.width;
+      state.aimPoint.y = ((e.clientY - rect.top) / rect.height) * canvas.height;
+    });
+
+    canvas.addEventListener("click", (e) => {
+      if (!running || state.gameOver || !state.player) return;
+      const rect = canvas.getBoundingClientRect();
+      const cx = ((e.clientX - rect.left) / rect.width) * canvas.width;
+      const cy = ((e.clientY - rect.top) / rect.height) * canvas.height;
+      state.player.targetGx = Math.max(0, Math.min(COLS - 1, Math.floor(cx / GRID)));
+      state.player.targetGy = Math.max(0, Math.min(ROWS - 1, Math.floor(cy / GRID)));
+      wordInput.focus();
+    });
+
+    wordInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        fireAtWord(wordInput.value);
+        wordInput.value = "";
+      }
+    });
+
+    window.addEventListener("keydown", (e) => {
+      if (state.pendingUpgrades.length > 0 && ["1", "2", "3"].includes(e.key)) {
+        applyUpgrade(Number(e.key) - 1);
+      }
+    });
+
+    aimToggleBtn.onclick = () => {
+      autoAim = !autoAim;
+      aimToggleBtn.textContent = `조준: ${autoAim ? "자동" : "마우스"}`;
+      aimToggleBtn.classList.toggle("active-toggle", autoAim);
+    };
+
+    soundToggleBtn.onclick = () => {
+      soundOn = !soundOn;
+      soundToggleBtn.textContent = `소리: ${soundOn ? "ON" : "OFF"}`;
+    };
+
+    votePauseBtn.onclick = () => {
+      if (!running || state.gameOver) return;
+      softPaused = !softPaused;
+      votePauseBtn.textContent = softPaused ? "재개 투표" : "일시정지 투표";
+    };
+
+    document.querySelectorAll(".lang-btn").forEach((btn) => {
+      btn.onclick = () => {
+        lang = btn.dataset.lang;
+        document.querySelectorAll(".lang-btn").forEach((b) => b.classList.remove("active-toggle"));
+        btn.classList.add("active-toggle");
+      };
+    });
+
+    document.querySelectorAll(".mode-btn").forEach((btn) => {
+      btn.onclick = () => {
+        mode = btn.dataset.mode;
+        document.querySelectorAll(".mode-btn").forEach((b) => b.classList.remove("active-toggle"));
+        btn.classList.add("active-toggle");
+      };
+    });
+
+    document.getElementById("startBtn").onclick = () => {
+      resetState();
+      running = true;
+      softPaused = false;
+      startOverlay.classList.add("hidden");
+      gameOverOverlay.classList.add("hidden");
+      levelOverlay.classList.add("hidden");
+      wordInput.value = "";
+      wordInput.focus();
+    };
+
+    document.getElementById("restartBtn").onclick = () => {
+      resetState();
+      running = true;
+      softPaused = false;
+      gameOverOverlay.classList.add("hidden");
+      wordInput.value = "";
+      wordInput.focus();
+    };
+  </script>
+</body>
+</html>
