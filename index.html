@@ -244,23 +244,26 @@
 
     .word-deck {
       width: 100%;
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 8px;
+      display: flex;
+      justify-content: center;
       pointer-events: auto;
     }
 
     .word-slot {
-      background: rgba(20, 27, 18, 0.92);
-      border: 3px solid #597841;
-      box-shadow: inset 0 0 0 2px #0f140e, 0 4px 0 #0b0f0a;
-      padding: 9px 6px;
+      min-width: 280px;
+      background: rgba(12, 18, 10, 0.96);
+      border: 4px solid var(--gold);
+      box-shadow:
+        inset 0 0 0 2px #0a0f08,
+        0 6px 0 #0b0f0a,
+        0 0 22px rgba(255, 212, 59, 0.35);
+      padding: 16px 44px;
       text-align: center;
-      font-size: 1.05rem;
+      font-size: 2.5rem;
       font-weight: 900;
-      letter-spacing: 0.04em;
-      color: #f4f7ec;
-      text-shadow: 2px 2px 0 #000;
+      letter-spacing: 0.08em;
+      color: #ffffff;
+      text-shadow: 3px 3px 0 #000;
       transition: transform 0.08s ease, border-color 0.08s ease;
       cursor: pointer;
     }
@@ -526,19 +529,30 @@
   <div class="deck-hud">
     <div class="word-deck" id="wordDeck"></div>
     <div class="cast-bar px-box">
-      <span class="cast-tag">주문 영창</span>
-      <input id="wordInput" type="text" autocomplete="off" spellcheck="false" placeholder="위 5개 단어 중 하나를 치면 공격이 발사됩니다..." />
+      <span class="cast-tag">단어 입력</span>
+      <input id="wordInput" type="text" autocomplete="off" spellcheck="false" placeholder="위에 크게 뜬 단어를 치면 공격이 발사됩니다..." />
       <span class="cast-help">완성 시 자동 / Space·Enter</span>
     </div>
   </div>
 
+  <!-- Main Menu Modal -->
+  <div id="mainMenuModal" class="modal-overlay">
+    <div class="modal-box px-box" style="text-align: center;">
+      <h1 style="font-size: 1.9rem;">MAIN MENU</h1>
+      <div class="info-panel" style="text-align: center;">
+        플레이할 모드를 선택하세요.
+      </div>
+      <button id="enterTajaBtn" class="primary" style="font-size: 1.2rem; padding: 15px;">taja survival</button>
+    </div>
+  </div>
+
   <!-- Start Modal -->
-  <div id="startModal" class="modal-overlay">
+  <div id="startModal" class="modal-overlay hidden">
     <div class="modal-box px-box">
       <h1>TAJA. SURVIVORS — 초원 편</h1>
       <div class="info-panel">
         • <strong>이동:</strong> 풀밭을 클릭하거나 드래그하면 목표 지점까지 등속 직선 이동 (숲 외곽에서 정지)<br/>
-        • <strong>공격:</strong> 화면 하단 <strong>5개 단어 덱</strong> 중 아무 단어나 입력하면 즉시 공격 및 새 단어 리젠<br/>
+        • <strong>공격:</strong> 화면 하단에 <strong>크게 뜬 단어</strong>를 입력하면 즉시 공격 및 새 단어 리젠<br/>
         • <strong>조준:</strong> 우측 상단에서 <strong>자동 조준</strong> 또는 <strong>마우스 조준</strong> 전환 가능<br/>
         • <strong>증강:</strong> 경험치 보석을 모아 레벨업 후 <strong>1, 2, 3</strong> 키로 증강 획득
       </div>
@@ -566,23 +580,27 @@
     const WORLD_W = 4000;
     const WORLD_H = 3000;
     const PLAYER_RADIUS = 18;
-    const DECK_SIZE = 5;
+    const DECK_SIZE = 1;
 
-    // 2~3 syllable Korean words prevent accidental premature triggers during Hangul composition
+    // Everyday words (2~3 syllables for comfortable Hangul/English typing)
     const WORDS = {
       ko: [
-        "바람", "번개", "불꽃", "방패", "칼날", "폭풍", "거울", "그림자", "빛줄기", "심장",
-        "파동", "궤도", "질주", "수호", "폭발", "연타", "정확", "용기", "신화", "별빛",
-        "서리", "화염", "균열", "결계", "창공", "유성", "태풍", "섬광", "격류", "봉인",
-        "각성", "공명", "초신성", "마력", "비전", "영혼", "수호자", "사냥꾼", "집중", "돌파",
-        "풀잎", "초원", "햇살", "이슬", "산들", "돌풍", "낙뢰", "열기", "냉기", "파편",
-        "투지", "맹공", "회복", "질풍", "천둥", "진동", "광휘", "암흑", "성운", "혜성"
+        "커피", "사과", "가방", "우산", "의자", "책상", "지하철", "편의점", "라면", "영화",
+        "음악", "산책", "주말", "친구", "가족", "강아지", "고양이", "창문", "이불", "베개",
+        "시계", "안경", "지갑", "열쇠", "신발", "모자", "양말", "수건", "비누", "칫솔",
+        "접시", "숟가락", "냉장고", "선풍기", "에어컨", "노트북", "키보드", "마우스", "자전거", "버스",
+        "택시", "도서관", "공원", "병원", "약국", "빵집", "카페", "식탁", "주전자", "달력",
+        "연필", "지우개", "공책", "편지", "사진", "날씨", "구름", "햇빛", "장갑", "목도리",
+        "딸기", "바나나", "포도", "수박", "김밥", "떡볶이", "치킨", "피자", "초콜릿", "케이크",
+        "우유", "주스", "생수", "설탕", "소금", "설거지", "빨래", "청소", "요리", "여행",
+        "휴가", "숙제", "시험", "출근", "퇴근", "아침", "점심", "저녁", "운동화", "충전기"
       ],
       en: [
-        "bolt", "nova", "spark", "storm", "pulse", "focus", "glyph", "echo", "drift", "prism",
-        "vigor", "strike", "swift", "orbit", "surge", "relic", "blade", "frost", "flame", "vortex",
-        "aegis", "comet", "zenith", "phantom", "radiant", "vector", "cipher", "arcane", "zephyr", "ember",
-        "meadow", "forest", "breeze", "thunder", "pebble", "clover", "ranger", "knight", "arrow", "shield"
+        "coffee", "apple", "bag", "chair", "table", "phone", "music", "movie", "water", "bread",
+        "smile", "happy", "friend", "family", "school", "office", "subway", "market", "park", "cloud",
+        "sunny", "rainy", "jacket", "shoes", "watch", "pencil", "paper", "bottle", "pillow", "window",
+        "kitchen", "dinner", "lunch", "morning", "weekend", "camera", "mirror", "wallet", "ticket", "cookie",
+        "banana", "orange", "tomato", "noodle", "butter", "sugar", "puppy", "kitten", "garden", "letter"
       ]
     };
 
@@ -1954,6 +1972,12 @@
 
     document.getElementById("startBtn").onclick = startGame;
     document.getElementById("restartBtn").onclick = startGame;
+
+    const mainMenuModal = document.getElementById("mainMenuModal");
+    document.getElementById("enterTajaBtn").onclick = () => {
+      mainMenuModal.classList.add("hidden");
+      startModal.classList.remove("hidden");
+    };
   </script>
 </body>
 </html>
