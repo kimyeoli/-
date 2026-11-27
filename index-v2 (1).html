@@ -1,0 +1,2484 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Taja. Survivors — Pixel Meadow</title>
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+    :root {
+      --ui-bg: rgba(20, 26, 18, 0.92);
+      --ui-panel: #1e261c;
+      --ui-border: #6b8e4e;
+      --ui-border-light: #a3c977;
+      --ui-shadow: #0d120c;
+      --text: #f4f7ec;
+      --muted: #b5c4a8;
+      --gold: #ffd43b;
+      --hp: #ff4d4d;
+      --exp: #3bc9db;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #1b2e17;
+      color: var(--text);
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    }
+
+    #gameCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      cursor: crosshair;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Pixel Frame Utility */
+    .px-box {
+      background: var(--ui-bg);
+      border: 3px solid var(--ui-border);
+      box-shadow:
+        inset 0 0 0 2px #121710,
+        0 4px 0 var(--ui-shadow);
+    }
+
+    /* Top HUD */
+    .hud-top {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      right: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      pointer-events: none;
+      z-index: 5;
+      gap: 12px;
+    }
+
+    .hud-left {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 10px 14px;
+      min-width: 280px;
+      pointer-events: auto;
+    }
+
+    .hud-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .game-title {
+      font-weight: 900;
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+      color: var(--gold);
+      text-shadow: 2px 2px 0 #000;
+    }
+
+    .time-tag {
+      font-variant-numeric: tabular-nums;
+      font-weight: 800;
+      font-size: 0.85rem;
+      background: #11170f;
+      border: 2px solid var(--ui-border);
+      padding: 2px 8px;
+      color: #fff;
+    }
+
+    .bar-group {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .bar-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .px-track {
+      width: 100%;
+      height: 10px;
+      background: #0e130c;
+      border: 2px solid #445934;
+      padding: 1px;
+    }
+
+    .px-fill-hp {
+      height: 100%;
+      width: 100%;
+      background: var(--hp);
+      transition: width 0.12s ease-out;
+    }
+
+    .px-fill-exp {
+      height: 100%;
+      width: 0%;
+      background: var(--exp);
+      transition: width 0.12s ease-out;
+    }
+
+    .stats-line {
+      display: flex;
+      gap: 10px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #e2ebd8;
+    }
+
+    .aug-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      max-width: 270px;
+    }
+
+    .aug-pill {
+      font-size: 0.7rem;
+      font-weight: 800;
+      background: #131a11;
+      border: 2px solid var(--ui-border-light);
+      color: var(--gold);
+      padding: 1px 6px;
+    }
+
+    .hud-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px;
+      pointer-events: auto;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: var(--text);
+      background: #253022;
+      border: 3px solid var(--ui-border);
+      box-shadow: 0 3px 0 var(--ui-shadow);
+      padding: 6px 11px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #31402d;
+      border-color: var(--ui-border-light);
+    }
+
+    button:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 var(--ui-shadow);
+    }
+
+    button.active {
+      background: #3b592c;
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    button.primary {
+      background: #3d7a2c;
+      border-color: #9be564;
+      color: #fff;
+      font-size: 0.98rem;
+      padding: 11px 18px;
+      text-shadow: 1px 1px 0 #142b0e;
+    }
+
+    button.primary:hover {
+      background: #499135;
+    }
+
+    #minimapCanvas {
+      width: 168px;
+      height: 126px;
+      background: rgba(16, 26, 14, 0.88);
+      border: 3px solid var(--ui-border);
+      box-shadow: 0 4px 0 var(--ui-shadow);
+      image-rendering: pixelated;
+    }
+
+    /* Global Regenerating Word Deck & Cast Bar */
+    .deck-hud {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(740px, calc(100vw - 24px));
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      z-index: 6;
+      pointer-events: none;
+    }
+
+    .word-deck {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      pointer-events: auto;
+    }
+
+    .word-slot {
+      min-width: 280px;
+      background: rgba(12, 18, 10, 0.96);
+      border: 4px solid var(--gold);
+      box-shadow:
+        inset 0 0 0 2px #0a0f08,
+        0 6px 0 #0b0f0a,
+        0 0 22px rgba(255, 212, 59, 0.35);
+      padding: 16px 44px;
+      text-align: center;
+      font-size: 2.5rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      color: #ffffff;
+      text-shadow: 3px 3px 0 #000;
+      transition: transform 0.08s ease, border-color 0.08s ease, background 0.08s ease;
+      cursor: pointer;
+    }
+
+    .word-slot.matching {
+      border-color: #9be564;
+      background: rgba(34, 52, 22, 0.96);
+      transform: translateY(-3px);
+    }
+
+    .word-slot.miss {
+      border-color: #ff4d4d;
+      background: rgba(65, 20, 20, 0.96);
+      animation: slotShake 0.22s ease;
+    }
+
+    .word-slot.pop {
+      animation: slotPop 0.16s ease-out;
+    }
+
+    @keyframes slotPop {
+      0% { transform: scale(0.84); border-color: #fff; }
+      100% { transform: scale(1); }
+    }
+
+    @keyframes slotShake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-7px); }
+      75% { transform: translateX(7px); }
+    }
+
+    .word-slot .hl {
+      color: var(--gold);
+      text-decoration: underline;
+    }
+
+    .cast-bar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      pointer-events: auto;
+    }
+
+    .cast-tag {
+      font-size: 0.78rem;
+      font-weight: 900;
+      color: #141c11;
+      background: var(--gold);
+      padding: 4px 9px;
+      border: 2px solid #000;
+      white-space: nowrap;
+    }
+
+    #wordInput {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #ffffff;
+      font-family: inherit;
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+
+    #wordInput::placeholder {
+      color: #7c916d;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .cast-help {
+      font-size: 0.74rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* Non-Pausing Level Up Augment Banner */
+    .augment-banner {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(620px, calc(100vw - 24px));
+      padding: 12px 14px;
+      border-color: var(--gold);
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .augment-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.86rem;
+      font-weight: 900;
+      color: var(--gold);
+      text-shadow: 1px 1px 0 #000;
+    }
+
+    .augment-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .aug-card {
+      background: #172015;
+      border: 3px solid #597841;
+      padding: 9px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .aug-card:hover {
+      border-color: var(--gold);
+      background: #23301f;
+    }
+
+    .aug-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .aug-key {
+      font-size: 0.7rem;
+      font-weight: 900;
+      background: var(--gold);
+      color: #111;
+      padding: 1px 6px;
+    }
+
+    .aug-lv {
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: var(--exp);
+    }
+
+    .aug-title {
+      font-size: 0.88rem;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .aug-desc {
+      font-size: 0.74rem;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 15, 9, 0.76);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 20;
+    }
+
+    .modal-box {
+      width: min(500px, 100%);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .modal-box h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--gold);
+      text-shadow: 2px 2px 0 #000;
+    }
+
+    .info-panel {
+      background: #121810;
+      border: 2px solid #445934;
+      padding: 12px 14px;
+      font-size: 0.85rem;
+      line-height: 1.65;
+      color: #dce6d3;
+    }
+
+    .info-panel strong {
+      color: var(--gold);
+    }
+
+    .opt-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .opt-row button {
+      flex: 1;
+      padding: 9px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- Top HUD -->
+  <div id="hudTop" class="hud-top hidden">
+    <div class="hud-left px-box">
+      <div class="hud-header">
+        <span class="game-title">TAJA. SURVIVORS</span>
+        <span class="time-tag" id="hudTime">00:00</span>
+      </div>
+
+      <div class="bar-group">
+        <div class="bar-meta">
+          <span>HP</span>
+          <span id="hudHpText">100 / 100</span>
+        </div>
+        <div class="px-track"><div class="px-fill-hp" id="hudHpBar"></div></div>
+      </div>
+
+      <div class="bar-group">
+        <div class="bar-meta">
+          <span id="hudLvText">LV. 1</span>
+          <span id="hudExpText">0 / 50 EXP</span>
+        </div>
+        <div class="px-track"><div class="px-fill-exp" id="hudExpBar"></div></div>
+      </div>
+
+      <div class="stats-line">
+        <span id="hudKills">처치 0</span>
+        <span>|</span>
+        <span id="hudScore">점수 0</span>
+        <span>|</span>
+        <span id="hudDmg">공격력 26</span>
+      </div>
+
+      <div class="aug-strip" id="augStrip"></div>
+    </div>
+
+    <div class="hud-right">
+      <div class="btn-group">
+        <button id="aimBtn" class="active">조준: 자동</button>
+        <button id="soundBtn" class="active">소리: ON</button>
+        <button id="pauseBtn">일시정지</button>
+      </div>
+      <canvas id="minimapCanvas" width="168" height="126"></canvas>
+    </div>
+  </div>
+
+  <!-- Non-Pausing Level-Up Augment Selection -->
+  <div id="augmentBanner" class="augment-banner px-box hidden">
+    <div class="augment-header">
+      <span id="augmentTitle">▲ 레벨업! 증강을 선택하세요 (실시간 진행)</span>
+      <span>[1] [2] [3] 키</span>
+    </div>
+    <div id="augmentGrid" class="augment-grid"></div>
+  </div>
+
+  <!-- Bottom Persistent Regenerating Word Deck -->
+  <div id="deckHud" class="deck-hud hidden">
+    <div class="word-deck" id="wordDeck"></div>
+    <div class="cast-bar px-box">
+      <span class="cast-tag">단어 입력</span>
+      <input id="wordInput" type="text" autocomplete="off" spellcheck="false" placeholder="위에 크게 뜬 단어를 치면 공격이 발사됩니다..." />
+      <span class="cast-help">완성 시 자동 / Space·Enter</span>
+    </div>
+  </div>
+
+  <!-- Main Menu Modal -->
+  <div id="mainMenuModal" class="modal-overlay">
+    <div class="modal-box px-box" style="text-align: center;">
+      <h1 style="font-size: 1.9rem;">MAIN MENU</h1>
+      <div class="info-panel" style="text-align: center;">
+        플레이할 모드를 선택하세요.
+      </div>
+      <button id="enterTajaBtn" class="primary" style="font-size: 1.2rem; padding: 15px;">taja survival</button>
+    </div>
+  </div>
+
+  <!-- Start Modal -->
+  <div id="startModal" class="modal-overlay hidden">
+    <div class="modal-box px-box">
+      <h1>TAJA. SURVIVORS — 초원 편</h1>
+      <div class="info-panel">
+        • <strong>이동:</strong> 풀밭을 클릭하거나 드래그하면 목표 지점까지 등속 직선 이동 (숲 외곽에서 정지)<br/>
+        • <strong>공격:</strong> 화면 하단에 <strong>크게 뜬 단어</strong>를 입력하면 즉시 공격 및 새 단어 리젠<br/>
+        • <strong>조준:</strong> 우측 상단에서 <strong>자동 조준</strong> 또는 <strong>마우스 조준</strong> 전환 가능<br/>
+        • <strong>증강:</strong> 경험치 보석을 모아 레벨업 후 <strong>1, 2, 3</strong> 키로 증강 획득 · <strong>ESC</strong> 일시정지
+      </div>
+
+      <div class="opt-row">
+        <button class="lang-btn active" data-lang="ko">한글 단어</button>
+        <button class="lang-btn" data-lang="en">English Words</button>
+      </div>
+
+      <div class="opt-row">
+        <button id="backToMenuBtn">메인 메뉴</button>
+        <button id="startBtn" class="primary" style="flex: 2;">모험 시작</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pause Modal -->
+  <div id="pauseModal" class="modal-overlay hidden">
+    <div class="modal-box px-box" style="text-align: center; width: min(360px, 100%);">
+      <h1>일시정지</h1>
+      <div class="opt-row" style="flex-direction: column;">
+        <button id="resumeBtn" class="primary">계속하기 (ESC)</button>
+        <button id="pauseRestartBtn">처음부터 다시하기</button>
+        <button id="pauseMenuBtn">메인 메뉴로</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Game Over Modal -->
+  <div id="gameOverModal" class="modal-overlay hidden">
+    <div class="modal-box px-box">
+      <h1>전투 종료</h1>
+      <div id="finalStats" class="info-panel" style="font-size:0.95rem;"></div>
+      <div class="opt-row">
+        <button id="gameOverMenuBtn">메인 메뉴</button>
+        <button id="restartBtn" class="primary" style="flex: 2;">다시 도전하기</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Expanded Outdoor Meadow Field
+    const WORLD_W = 4000;
+    const WORLD_H = 3000;
+    const WORLD_MARGIN = 84;
+    const PLAYER_RADIUS = 20;
+    const DECK_SIZE = 1;
+
+    // Everyday words (2~3 syllables for comfortable Hangul/English typing)
+    const WORDS = {
+      ko: [
+        "커피", "사과", "가방", "우산", "의자", "책상", "지하철", "편의점", "라면", "영화",
+        "음악", "산책", "주말", "친구", "가족", "강아지", "고양이", "창문", "이불", "베개",
+        "시계", "안경", "지갑", "열쇠", "신발", "모자", "양말", "수건", "비누", "칫솔",
+        "접시", "숟가락", "냉장고", "선풍기", "에어컨", "노트북", "키보드", "마우스", "자전거", "버스",
+        "택시", "도서관", "공원", "병원", "약국", "빵집", "카페", "식탁", "주전자", "달력",
+        "연필", "지우개", "공책", "편지", "사진", "날씨", "구름", "햇빛", "장갑", "목도리",
+        "딸기", "바나나", "포도", "수박", "김밥", "떡볶이", "치킨", "피자", "초콜릿", "케이크",
+        "우유", "주스", "생수", "설탕", "소금", "설거지", "빨래", "청소", "요리", "여행",
+        "휴가", "숙제", "시험", "출근", "퇴근", "아침", "점심", "저녁", "운동화", "충전기"
+      ],
+      en: [
+        "coffee", "apple", "bag", "chair", "table", "phone", "music", "movie", "water", "bread",
+        "smile", "happy", "friend", "family", "school", "office", "subway", "market", "park", "cloud",
+        "sunny", "rainy", "jacket", "shoes", "watch", "pencil", "paper", "bottle", "pillow", "window",
+        "kitchen", "dinner", "lunch", "morning", "weekend", "camera", "mirror", "wallet", "ticket", "cookie",
+        "banana", "orange", "tomato", "noodle", "butter", "sugar", "puppy", "kitten", "garden", "letter"
+      ]
+    };
+
+    // 12 Stackable Augments
+    const AUGMENTS = [
+      { id: "multishot", name: "이중 영창", desc: "동시 발사 투사체 +1개 (부채꼴 확산)", max: 5 },
+      { id: "pierce", name: "관통 화살", desc: "투사체가 적을 +1회 추가 관통", max: 5 },
+      { id: "chain", name: "연쇄 번개", desc: "적중 시 주변 적에게 전이되는 번개 발동", max: 5 },
+      { id: "explode", name: "화염 폭발", desc: "적중 시 픽셀 화염 폭발 광역 피해", max: 5 },
+      { id: "blades", name: "회전 수호검", desc: "주위를 돌며 적을 베는 수호검 +1개", max: 6 },
+      { id: "frost", name: "서리 결계", desc: "주변 적 이동속도 감소 및 냉기 지속 피해", max: 4 },
+      { id: "power", name: "마력 증폭", desc: "기본 공격력 +14 증가", max: 99 },
+      { id: "crit", name: "치명타 각인", desc: "치명타 확률 +20% (치명타 피해 2배)", max: 5 },
+      { id: "swift", name: "질풍의 장화", desc: "이동 속도 +16% 증가", max: 6 },
+      { id: "magnet", name: "마나 자석", desc: "경험치 보석 흡수 반경 +60% 증가", max: 5 },
+      { id: "vitality", name: "자연의 축복", desc: "최대 체력 +25, 즉시 40 회복 및 초당 재생 +1.5", max: 99 },
+      { id: "echo", name: "연쇄 영창", desc: "단어 완성 시 28% 확률로 추가 유도탄 발사", max: 4 }
+    ];
+
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const miniCanvas = document.getElementById("minimapCanvas");
+    const miniCtx = miniCanvas.getContext("2d");
+
+    const hudTop = document.getElementById("hudTop");
+    const deckHud = document.getElementById("deckHud");
+    const wordDeckEl = document.getElementById("wordDeck");
+    const wordInput = document.getElementById("wordInput");
+    const hudTime = document.getElementById("hudTime");
+    const hudHpText = document.getElementById("hudHpText");
+    const hudHpBar = document.getElementById("hudHpBar");
+    const hudLvText = document.getElementById("hudLvText");
+    const hudExpText = document.getElementById("hudExpText");
+    const hudExpBar = document.getElementById("hudExpBar");
+    const hudKills = document.getElementById("hudKills");
+    const hudScore = document.getElementById("hudScore");
+    const hudDmg = document.getElementById("hudDmg");
+    const augStrip = document.getElementById("augStrip");
+
+    const aimBtn = document.getElementById("aimBtn");
+    const soundBtn = document.getElementById("soundBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const augmentBanner = document.getElementById("augmentBanner");
+    const augmentTitle = document.getElementById("augmentTitle");
+    const augmentGrid = document.getElementById("augmentGrid");
+
+    const mainMenuModal = document.getElementById("mainMenuModal");
+    const startModal = document.getElementById("startModal");
+    const pauseModal = document.getElementById("pauseModal");
+    const gameOverModal = document.getElementById("gameOverModal");
+    const finalStats = document.getElementById("finalStats");
+
+    let viewW = window.innerWidth;
+    let viewH = window.innerHeight;
+    function resizeCanvas() {
+      viewW = window.innerWidth;
+      viewH = window.innerHeight;
+      canvas.width = viewW;
+      canvas.height = viewH;
+      ctx.imageSmoothingEnabled = false;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    // =========================================================
+    // 2.25x PIXEL ART SPRITE & TILE GENERATOR (Pre-baked)
+    // =========================================================
+    function bakeSprite(rows, palette, scale = 3) {
+      const h = rows.length;
+      const w = rows[0].length;
+      const c = document.createElement("canvas");
+      c.width = w * scale;
+      c.height = h * scale;
+      const g = c.getContext("2d");
+      g.imageSmoothingEnabled = false;
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          const ch = rows[y][x];
+          if (ch !== "." && palette[ch]) {
+            g.fillStyle = palette[ch];
+            g.fillRect(x * scale, y * scale, scale, scale);
+          }
+        }
+      }
+      return c;
+    }
+
+    function bakeFlipped(spriteCanvas) {
+      const c = document.createElement("canvas");
+      c.width = spriteCanvas.width;
+      c.height = spriteCanvas.height;
+      const g = c.getContext("2d");
+      g.imageSmoothingEnabled = false;
+      g.translate(c.width, 0);
+      g.scale(-1, 1);
+      g.drawImage(spriteCanvas, 0, 0);
+      return c;
+    }
+
+    function bakeTint(spriteCanvas, color) {
+      const c = document.createElement("canvas");
+      c.width = spriteCanvas.width;
+      c.height = spriteCanvas.height;
+      const g = c.getContext("2d");
+      g.imageSmoothingEnabled = false;
+      g.drawImage(spriteCanvas, 0, 0);
+      g.globalCompositeOperation = "source-atop";
+      g.fillStyle = color;
+      g.fillRect(0, 0, c.width, c.height);
+      return c;
+    }
+
+    // 1. Finer Seamless Pixel Meadow Grass Tile (256x256, 3px texels for crisp 2.25x look)
+    const grassPatternCanvas = (() => {
+      const size = 256;
+      const px = 3;
+      const c = document.createElement("canvas");
+      c.width = size;
+      c.height = size;
+      const g = c.getContext("2d");
+      g.fillStyle = "#4b913d";
+      g.fillRect(0, 0, size, size);
+
+      let seed = 1337;
+      const rand = () => {
+        seed = (seed * 16807) % 2147483647;
+        return (seed - 1) / 2147483646;
+      };
+
+      const cols = Math.ceil(size / px);
+      for (let y = 0; y < cols; y++) {
+        for (let x = 0; x < cols; x++) {
+          const r = rand();
+          if (r < 0.13) {
+            g.fillStyle = "#3e7d31";
+            g.fillRect(x * px, y * px, px, px);
+            if (y > 0 && rand() < 0.55) g.fillRect(x * px, (y - 1) * px, px, px);
+          } else if (r < 0.24) {
+            g.fillStyle = "#5ea84c";
+            g.fillRect(x * px, y * px, px, px);
+          } else if (r < 0.254) {
+            // Clover / bright tuft
+            g.fillStyle = "#74bf5c";
+            g.fillRect(x * px, y * px, px, px);
+            g.fillRect((x + 1) * px, y * px, px, px);
+          } else if (r < 0.264) {
+            // Tiny wildflower
+            g.fillStyle = "#366b2b";
+            g.fillRect(x * px, y * px, px, px);
+            const flowerColors = ["#ffe066", "#ffffff", "#ff8787", "#74c0fc"];
+            g.fillStyle = flowerColors[Math.floor(rand() * flowerColors.length)];
+            if (y > 0) g.fillRect(x * px, (y - 1) * px, px, px);
+          } else if (r < 0.27) {
+            g.fillStyle = "#868e96";
+            g.fillRect(x * px, y * px, px, px);
+          }
+        }
+      }
+      return c;
+    })();
+
+    // 2. Upgraded 2.25x-Pixel-Density Sprites (Player 18x18, Enemies 16x13 ~ 22x20, Trees 24x22)
+    const SPRITES = {};
+    (() => {
+      const playerPal = {
+        o: "#141812", // dark pixel outline
+        h: "#2b59c3", // hood/cloak blue
+        d: "#1b3a8a", // hood/tunic dark shade
+        l: "#5cc8ff", // hood highlight
+        g: "#ffd43b", // gold trim & buckle
+        s: "#ffd8a8", // skin
+        k: "#e6b482", // skin shade
+        e: "#12151a", // eyes
+        r: "#e03131", // crimson scarf
+        p: "#ff6b6b", // scarf highlight
+        c: "#2268b8", // tunic mid
+        b: "#5c3a21", // boots & belt
+        w: "#7a4e2a", // arcane staff wood
+        a: "#3bc9db", // staff crystal
+        y: "#e3fafc"  // crystal shine
+      };
+
+      const playerIdle = [
+        "......oooooo......",
+        ".....oohllhoo.....",
+        "....ohllhhhhho....",
+        "...ohhhhhhdhhho...",
+        "..oohggggggghhoo..",
+        ".oohhdssssssddhoo.",
+        "..ooodseseskoo.oo.",
+        "....oosssssso.oyao",
+        "...ooorpprrroooyao",
+        "..oorroccccco.oao.",
+        ".oorooocgccco.owo.",
+        "..ooo.occddco.owo.",
+        "......obgggbo.owo.",
+        "......occddco.owo.",
+        "......odccddo.owo.",
+        "......obboobboowo.",
+        "......obboobboooo.",
+        "......oooo.oooo..."
+      ];
+
+      const playerWalk1 = [
+        "......oooooo......",
+        ".....oohllhoo.....",
+        "....ohllhhhhho....",
+        "...ohhhhhhdhhho...",
+        "..oohggggggghhoo..",
+        ".oohhdssssssddhoo.",
+        "..ooodseseskoo.oo.",
+        "..oo.osssssso.oyao",
+        ".orpoorpprrroooyao",
+        "oorro.occccco.oao.",
+        ".ooo..ocgccco.owo.",
+        "......occddco.owo.",
+        "......obgggbo.owo.",
+        ".....ooccddcooowo.",
+        ".....oobbo.obbooo.",
+        "....oobbo...obbo..",
+        "....oooo.....oooo.",
+        ".................."
+      ];
+
+      const playerWalk2 = [
+        "..................",
+        "......oooooo......",
+        ".....oohllhoo.....",
+        "....ohllhhhhho....",
+        "...ohhhhhhdhhho...",
+        "..oohggggggghhoo..",
+        ".oohhdssssssddhoo.",
+        "..ooodseseskoo.oo.",
+        "...ooosssssso.oyao",
+        "..oroorpprrroooyao",
+        "..ooo.occccco.oao.",
+        "......ocgccco.owo.",
+        "......obgggbo.owo.",
+        "......occddco.owo.",
+        "......odccddo.owo.",
+        ".....oobboobboooo.",
+        ".....oooo..oooo...",
+        ".................."
+      ];
+
+      const playerCast = [
+        ".............oyyo.",
+        "......oooooo.oyao.",
+        ".....oohllhoooyao.",
+        "....ohllhhhhhoooo.",
+        "...ohhhhhhdhhho...",
+        "..oohggggggghhoo..",
+        ".oohhdssssssddhoo.",
+        "..ooodseseskoowoo.",
+        ".oo..osssssso.owo.",
+        "orpooorpprrro.owo.",
+        ".ooo..occccco.owo.",
+        "......ocgcccooowo.",
+        "......obgggbo.owo.",
+        "......occddco.ooo.",
+        "......odccddo.....",
+        "......obboobbo....",
+        "......obboobbo....",
+        "......oooo.oooo..."
+      ];
+
+      SPRITES.playerRIdle = bakeSprite(playerIdle, playerPal, 3);
+      SPRITES.playerRWalk1 = bakeSprite(playerWalk1, playerPal, 3);
+      SPRITES.playerRWalk2 = bakeSprite(playerWalk2, playerPal, 3);
+      SPRITES.playerRCast = bakeSprite(playerCast, playerPal, 3);
+
+      SPRITES.playerLIdle = bakeFlipped(SPRITES.playerRIdle);
+      SPRITES.playerLWalk1 = bakeFlipped(SPRITES.playerRWalk1);
+      SPRITES.playerLWalk2 = bakeFlipped(SPRITES.playerRWalk2);
+      SPRITES.playerLCast = bakeFlipped(SPRITES.playerRCast);
+
+      // Crimson Slime (16x13, 2 frames)
+      const slimePal = { o: "#141812", b: "#fa5252", d: "#c92a2a", l: "#ff8787", w: "#fff5f5", e: "#12151a" };
+      const slime1 = [
+        ".....oooooo.....",
+        "...oobllllboo...",
+        "..obllbbbbbbbo..",
+        ".obwwlbbbbbbbbo.",
+        ".obwbbbbbbbbdbo.",
+        "obbbbbbbbbbbbdbo",
+        "obbbeebbbbeebdbo",
+        "obbbeebbbbeebdbo",
+        "obbbeebbbbeebdbo",
+        "obbbbbbbbbbbddbo",
+        "odbbbbbbbbbbdddo",
+        ".oddddddddddddo.",
+        "..oooooooooooo.."
+      ];
+      const slime2 = [
+        "................",
+        "................",
+        "....oooooooo....",
+        "..oobllllllboo..",
+        ".obwwlbbbbbbbbo.",
+        "obwbbbbbbbbbbdbo",
+        "obbbeebbbbeebdbo",
+        "obbbeebbbbeebdbo",
+        "obbbbbbbbbbbddbo",
+        "obbbbbbbbbbbddbo",
+        "oddddddddddddddo",
+        "oooooooooooooooo",
+        "................"
+      ];
+      SPRITES.slimeR1 = bakeSprite(slime1, slimePal, 3);
+      SPRITES.slimeR2 = bakeSprite(slime2, slimePal, 3);
+      SPRITES.slimeL1 = bakeFlipped(SPRITES.slimeR1);
+      SPRITES.slimeL2 = bakeFlipped(SPRITES.slimeR2);
+
+      // Goblin Raider (18x16, 2 frames)
+      const goblinPal = {
+        o: "#141812", g: "#74b816", l: "#a9e34b", d: "#4d7c0f",
+        y: "#ffe066", r: "#c92a2a", k: "#862e08", t: "#5c2006",
+        m: "#ced4da", w: "#f8f9fa", b: "#495057"
+      };
+      const goblin1 = [
+        ".....oooooooo.....",
+        "....ogllllgggo....",
+        "oo..oggggggggo..oo",
+        "ogoooggggggggooogo",
+        ".oooggdyggdyggooo.",
+        "...ooggdggdggoo...",
+        "....oggdrrddgo....",
+        "....ooggddggoo.oo.",
+        "...ookkkkkkkkoowmo",
+        "..ookkkykkykkkommo",
+        "..ogokkkttkkkoowo.",
+        "..oo.okkttkkko.oo.",
+        ".....ottttttt.....",
+        ".....obbo.obbo....",
+        ".....obbo.obbo....",
+        ".....oooo.oooo...."
+      ];
+      const goblin2 = [
+        "..................",
+        ".....oooooooo.....",
+        "....ogllllgggo....",
+        "oo..oggggggggo..oo",
+        "ogoooggggggggooogo",
+        ".oooggdyggdyggooo.",
+        "...ooggdggdggoo...",
+        "....oggdrrddgo.oo.",
+        "....ooggddggooowmo",
+        "...ookkkkkkkkommo.",
+        "..ookkkykkykkoowo.",
+        "..ogokkkttkkko.oo.",
+        "..oo.ottttttt.....",
+        "....oobbo..obbo...",
+        "....oooo...oooo...",
+        ".................."
+      ];
+      SPRITES.goblinR1 = bakeSprite(goblin1, goblinPal, 3);
+      SPRITES.goblinR2 = bakeSprite(goblin2, goblinPal, 3);
+      SPRITES.goblinL1 = bakeFlipped(SPRITES.goblinR1);
+      SPRITES.goblinL2 = bakeFlipped(SPRITES.goblinR2);
+
+      // Skeleton Warrior (18x17, 2 frames)
+      const skelPal = {
+        o: "#141812", w: "#f1f3f5", s: "#adb5bd", e: "#cc5de8",
+        c: "#343a40", d: "#212529", m: "#dee2e6", g: "#fab005"
+      };
+      const skel1 = [
+        ".....oooooooo.....",
+        "....owwwwwwwwo....",
+        "...owwwwwwwwwwo...",
+        "...owwoowwoowwo...",
+        "...owweowweowwo...",
+        "...owwwwwwwwwwo...",
+        "....owoswwsowo....",
+        ".....oowwwwoo..oo.",
+        "...oocowwwwoooowmo",
+        "..occcowswwooommmo",
+        "..occdoowwoo.ogmo.",
+        "..occdowswwo..ogo.",
+        "...oo.owwwwo...oo.",
+        "......owsoowso....",
+        "......owsoowso....",
+        ".....oowsoowsoo...",
+        ".....oooo..oooo..."
+      ];
+      const skel2 = [
+        "..................",
+        ".....oooooooo.....",
+        "....owwwwwwwwo....",
+        "...owwwwwwwwwwo...",
+        "...owwoowwoowwo...",
+        "...owweowweowwo...",
+        "...owwwwwwwwwwo...",
+        "....owoswwsowo.oo.",
+        ".....oowwwwooowmo.",
+        "...oocowwwwoommmo.",
+        "..occcowswwooogmo.",
+        "..occdoowwoo..ogo.",
+        "..oo..owswwo...oo.",
+        ".....oowso.owso...",
+        "....oowso...owso..",
+        "....oooo.....oooo.",
+        ".................."
+      ];
+      SPRITES.skeletonR1 = bakeSprite(skel1, skelPal, 3);
+      SPRITES.skeletonR2 = bakeSprite(skel2, skelPal, 3);
+      SPRITES.skeletonL1 = bakeFlipped(SPRITES.skeletonR1);
+      SPRITES.skeletonL2 = bakeFlipped(SPRITES.skeletonR2);
+
+      // Stone Golem (22x20, 2 frames)
+      const golemPal = {
+        o: "#141812", s: "#868e96", h: "#ced4da", d: "#495057",
+        m: "#5c940d", g: "#ffd43b", y: "#fff3bf"
+      };
+      const golem1 = [
+        "......oooooooooo......",
+        "....oohhhssssmmsoo....",
+        "...ohhhssssssssmsso...",
+        "..ohssssssssssssssso..",
+        ".oosssddssssssddsssoo.",
+        "ossssdygssssssgydsssso",
+        "osssssddssssssddssssso",
+        "ohssssssssssssssssssdo",
+        "ohssmmsssggggsssmmssdo",
+        "osssmmssgyyyygssmmssdo",
+        "osssssssgyyyygssssssdo",
+        "odsssssssggggsssssssdo",
+        "odddssssssssssssssdddo",
+        "o.oossssssssssssssoo.o",
+        "....ossssddddsssso....",
+        "....osssso..osssso....",
+        "....oddddo..oddddo....",
+        "...ooddddo..oddddoo...",
+        "...ooooooo..ooooooo...",
+        "......................"
+      ];
+      const golem2 = [
+        "......................",
+        "......oooooooooo......",
+        "....oohhhssssmmsoo....",
+        "...ohhhssssssssmsso...",
+        "..ohssssssssssssssso..",
+        ".oosssddssssssddsssoo.",
+        "ossssdygssssssgydsssso",
+        "osssssddssssssddssssso",
+        "ohssssssssssssssssssdo",
+        "ohssmmsssggggsssmmssdo",
+        "osssmmssgyyyygssmmssdo",
+        "osssssssgyyyygssssssdo",
+        "odsssssssggggsssssssdo",
+        "odddssssssssssssssdddo",
+        "o.oossssssssssssssoo.o",
+        "...oosssso..ossssoo...",
+        "...ooddddo..oddddoo...",
+        "...ooooooo..ooooooo...",
+        "......................",
+        "......................"
+      ];
+      SPRITES.golemR1 = bakeSprite(golem1, golemPal, 3);
+      SPRITES.golemR2 = bakeSprite(golem2, golemPal, 3);
+      SPRITES.golemL1 = bakeFlipped(SPRITES.golemR1);
+      SPRITES.golemL2 = bakeFlipped(SPRITES.golemR2);
+
+      // Perimeter Pixel Oak Tree (24x22)
+      const treePal = {
+        o: "#121f10", x: "#1f4717", d: "#2b6320", m: "#3f872d",
+        l: "#66bd4b", h: "#94d862", t: "#6b4423", k: "#452912"
+      };
+      const treeRows = [
+        ".......oooooooooo.......",
+        ".....oomllhhhhllmoo.....",
+        "....omllhhhhhhhhllmo....",
+        "...omlhhhllllllhhhlmo...",
+        "..omllhlllmmmmlllhlmmo..",
+        ".omllllmmmmmmmmmmllllmo.",
+        ".omllmmmmmddddmmmmmllmo.",
+        "omllmmmddddddddddmmmllmo",
+        "omlmmmddddddddddddmmmlmo",
+        "ommmmddddxxxxxxddddmmmmo",
+        "odmmdddxxxxxxxxxxdddmdmo",
+        ".oddddxxxxxxxxxxxxddddo.",
+        ".oodddxxxxxxxxxxxxdddoo.",
+        "..oooddxxxxxxxxxxddooo..",
+        "....ooooddddddddoooo....",
+        ".......ooootkoooo.......",
+        ".........ottkko.........",
+        ".........ottkko.........",
+        ".........ottkko.........",
+        "........oottkkoo........",
+        ".......ootttkkkoo.......",
+        ".......oooooooooo......."
+      ];
+      SPRITES.tree = bakeSprite(treeRows, treePal, 4);
+
+      // White flash silhouettes for crisp pixel hit-feedback
+      ["slime", "goblin", "skeleton", "golem"].forEach((k) => {
+        ["R1", "R2", "L1", "L2"].forEach((s) => {
+          SPRITES[k + s + "Hit"] = bakeTint(SPRITES[k + s], "rgba(255,255,255,0.82)");
+        });
+      });
+    })();
+
+    // Deterministic Meadow Landmarks (dirt patches, wildflower beds & rocks)
+    const MEADOW_DECOR = (() => {
+      const items = [];
+      let s = 90210;
+      const rnd = () => {
+        s = (s * 16807) % 2147483647;
+        return (s - 1) / 2147483646;
+      };
+      for (let i = 0; i < 165; i++) {
+        const roll = rnd();
+        items.push({
+          x: 150 + rnd() * (WORLD_W - 300),
+          y: 150 + rnd() * (WORLD_H - 300),
+          type: roll < 0.4 ? "dirt" : roll < 0.8 ? "flowers" : "stone",
+          w: 44 + Math.floor(rnd() * 64),
+          h: 34 + Math.floor(rnd() * 48)
+        });
+      }
+      return items;
+    })();
+
+    // =========================================================
+    // GAME STATE & AUDIO
+    // =========================================================
+    let lang = "ko";
+    let autoAim = true;
+    let soundOn = true;
+    let paused = false;
+    let running = false;
+    let isPointerDown = false;
+    let isComposing = false;
+    let suppressInput = false;
+
+    let audioCtx = null;
+    function playSfx(freq, dur = 0.06, type = "square", vol = 0.045, slideTo = null) {
+      if (!soundOn) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+        if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, now + dur);
+        gain.gain.setValueAtTime(vol, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + dur);
+      } catch (_) {}
+    }
+
+    let state = null;
+    function initState() {
+      state = {
+        player: {
+          x: WORLD_W / 2,
+          y: WORLD_H / 2,
+          targetX: WORLD_W / 2,
+          targetY: WORLD_H / 2,
+          facingX: 1,
+          facingAngle: 0,
+          walkTimer: 0,
+          castTimer: 0,
+          invulnTimer: 0,
+          hurtFlash: 0,
+          speed: 255,
+          hp: 100,
+          maxHp: 100,
+          regen: 0,
+          dmg: 26,
+          critChance: 0.05,
+          magnet: 145,
+          lv: 1,
+          exp: 0,
+          nextExp: 50,
+          kills: 0,
+          score: 0,
+          augments: {}
+        },
+        camera: {
+          x: WORLD_W / 2 - viewW / 2,
+          y: WORLD_H / 2 - viewH / 2,
+          shake: 0
+        },
+        mouseScreen: { x: viewW / 2, y: viewH / 2 },
+        deck: [],
+        enemies: [],
+        projectiles: [],
+        gems: [],
+        lightnings: [],
+        explosions: [],
+        castRings: [],
+        particles: [],
+        floatTexts: [],
+        pendingAugments: [],
+        pendingLevelUps: 0,
+        spawnTimer: 0.45,
+        elapsed: 0,
+        gameOver: false
+      };
+      fillWordDeck();
+      updateCamera();
+      renderAugmentStrip();
+      updateHud();
+    }
+
+    function clamp(v, min, max) {
+      return Math.max(min, Math.min(max, v));
+    }
+
+    function updateCamera() {
+      const p = state.player;
+      state.camera.x = WORLD_W <= viewW ? (WORLD_W - viewW) / 2 : clamp(p.x - viewW / 2, 0, WORLD_W - viewW);
+      state.camera.y = WORLD_H <= viewH ? (WORLD_H - viewH) / 2 : clamp(p.y - viewH / 2, 0, WORLD_H - viewH);
+    }
+
+    // =========================================================
+    // GLOBAL REGENERATING WORD DECK & CLEAN IME HANDLING
+    // =========================================================
+    function pickNextWord(excludeSet) {
+      const pool = WORDS[lang];
+      const candidates = pool.filter((w) => !excludeSet.has(w));
+      const list = candidates.length > 0 ? candidates : pool;
+      return list[Math.floor(Math.random() * list.length)];
+    }
+
+    function fillWordDeck() {
+      const used = new Set(state.deck);
+      while (state.deck.length < DECK_SIZE) {
+        const w = pickNextWord(used);
+        state.deck.push(w);
+        used.add(w);
+      }
+      renderWordDeck(-1);
+    }
+
+    function clearWordInputSafely() {
+      suppressInput = true;
+      if (isComposing) {
+        // Force-commit and clear CJK/Korean IME composition buffer cleanly
+        wordInput.blur();
+        wordInput.value = "";
+        isComposing = false;
+        wordInput.focus();
+      } else {
+        wordInput.value = "";
+      }
+      suppressInput = false;
+    }
+
+    function flashWordMiss() {
+      const slot = wordDeckEl.querySelector(".word-slot");
+      if (!slot) return;
+      slot.classList.remove("miss");
+      void slot.offsetWidth;
+      slot.classList.add("miss");
+    }
+
+    function renderWordDeck(popIndex = -1) {
+      const rawTyped = wordInput.value.trim();
+      const typedComp = lang === "en" ? rawTyped.toLowerCase() : rawTyped;
+      wordDeckEl.innerHTML = "";
+      state.deck.forEach((word, idx) => {
+        const wordComp = lang === "en" ? word.toLowerCase() : word;
+        const slot = document.createElement("div");
+        const isMatch = typedComp.length > 0 && wordComp.startsWith(typedComp);
+        slot.className = "word-slot" + (isMatch ? " matching" : "") + (idx === popIndex ? " pop" : "");
+        if (isMatch) {
+          slot.innerHTML = `<span class="hl">${word.slice(0, rawTyped.length)}</span>${word.slice(rawTyped.length)}`;
+        } else {
+          slot.textContent = word;
+        }
+        slot.onclick = () => wordInput.focus();
+        wordDeckEl.appendChild(slot);
+      });
+    }
+
+    // =========================================================
+    // AUGMENT SYSTEM (WITH LEVEL-UP QUEUE)
+    // =========================================================
+    function getAugLv(id) {
+      return state.player.augments[id] || 0;
+    }
+
+    function renderAugmentStrip() {
+      augStrip.innerHTML = "";
+      Object.entries(state.player.augments).forEach(([id, lv]) => {
+        const meta = AUGMENTS.find((a) => a.id === id);
+        if (!meta) return;
+        const tag = document.createElement("span");
+        tag.className = "aug-pill";
+        tag.textContent = `${meta.name} Lv.${lv}`;
+        augStrip.appendChild(tag);
+      });
+    }
+
+    function checkLevelUp() {
+      const p = state.player;
+      while (p.exp >= p.nextExp) {
+        p.exp -= p.nextExp;
+        p.lv += 1;
+        p.nextExp = Math.round(p.nextExp * 1.35);
+        state.pendingLevelUps += 1;
+      }
+      if (state.pendingLevelUps > 0 && state.pendingAugments.length === 0) {
+        offerAugments();
+      }
+    }
+
+    function offerAugments() {
+      const available = AUGMENTS.filter((a) => getAugLv(a.id) < a.max);
+      const picks = [...available].sort(() => Math.random() - 0.5).slice(0, 3);
+      if (picks.length === 0) {
+        state.pendingLevelUps = 0;
+        return;
+      }
+
+      state.pendingAugments = picks;
+      augmentTitle.textContent =
+        state.pendingLevelUps > 1
+          ? `▲ 레벨업! 증강을 선택하세요 (대기 ${state.pendingLevelUps}회)`
+          : "▲ 레벨업! 증강을 선택하세요 (실시간 진행)";
+
+      augmentGrid.innerHTML = "";
+      picks.forEach((aug, i) => {
+        const nextLv = getAugLv(aug.id) + 1;
+        const card = document.createElement("div");
+        card.className = "aug-card";
+        card.innerHTML = `
+          <div class="aug-top">
+            <span class="aug-key">KEY ${i + 1}</span>
+            <span class="aug-lv">Lv.${nextLv}</span>
+          </div>
+          <div class="aug-title">${aug.name}</div>
+          <div class="aug-desc">${aug.desc}</div>
+        `;
+        card.onclick = () => chooseAugment(i);
+        augmentGrid.appendChild(card);
+      });
+      augmentBanner.classList.remove("hidden");
+      playSfx(523, 0.18, "square", 0.055, 880);
+    }
+
+    function chooseAugment(index) {
+      const aug = state.pendingAugments[index];
+      if (!aug) return;
+      const p = state.player;
+      p.augments[aug.id] = getAugLv(aug.id) + 1;
+
+      if (aug.id === "power") p.dmg += 14;
+      else if (aug.id === "crit") p.critChance = Math.min(1, p.critChance + 0.2);
+      else if (aug.id === "swift") p.speed = Math.round(p.speed * 1.16);
+      else if (aug.id === "magnet") p.magnet = Math.round(p.magnet * 1.6);
+      else if (aug.id === "vitality") {
+        p.maxHp += 25;
+        p.hp = Math.min(p.maxHp, p.hp + 40);
+        p.regen += 1.5;
+      }
+
+      state.pendingAugments = [];
+      state.pendingLevelUps = Math.max(0, state.pendingLevelUps - 1);
+      renderAugmentStrip();
+      addFloatText(p.x, p.y - 36, `${aug.name} Lv.${p.augments[aug.id]}!`, "#ffd43b");
+      playSfx(660, 0.13, "square", 0.055, 1040);
+
+      if (state.pendingLevelUps > 0) {
+        offerAugments();
+      } else {
+        augmentBanner.classList.add("hidden");
+      }
+      wordInput.focus();
+    }
+
+    // =========================================================
+    // COMBAT, PROJECTILES & SPELL CASTING
+    // =========================================================
+    function spawnProjectilesFromPlayer(baseAngle, targetEnemy = null, isEcho = false) {
+      const p = state.player;
+      const multishot = getAugLv("multishot");
+      const count = 1 + multishot;
+      const spread = 0.15;
+      const pierce = getAugLv("pierce");
+
+      for (let i = 0; i < count; i++) {
+        const offset = (i - (count - 1) / 2) * spread;
+        const ang = baseAngle + offset;
+        state.projectiles.push({
+          x: p.x + Math.cos(ang) * 14,
+          y: p.y + Math.sin(ang) * 14,
+          vx: Math.cos(ang) * 780,
+          vy: Math.sin(ang) * 780,
+          dmg: isEcho ? Math.round(p.dmg * 0.8) : p.dmg,
+          pierceLeft: pierce,
+          hitSet: new Set(),
+          homingTarget: i === 0 && autoAim ? targetEnemy : null,
+          life: 1.35,
+          isEcho
+        });
+      }
+    }
+
+    function castDeckWord(rawText, silentMiss = false) {
+      const query = rawText.trim();
+      if (!query || !running || state.gameOver || paused) return false;
+
+      const normQuery = lang === "en" ? query.toLowerCase() : query;
+      const slotIdx = state.deck.findIndex((w) => (lang === "en" ? w.toLowerCase() : w) === normQuery);
+      if (slotIdx === -1) {
+        if (!silentMiss) {
+          playSfx(150, 0.08, "sawtooth", 0.04, 110);
+          flashWordMiss();
+        }
+        return false;
+      }
+
+      const p = state.player;
+      let aimAngle = p.facingAngle;
+      let nearestEnemy = null;
+
+      const aliveEnemies = state.enemies.filter((e) => !e.dead && e.hp > 0);
+      if (autoAim) {
+        if (aliveEnemies.length > 0) {
+          nearestEnemy = aliveEnemies.reduce((best, cur) =>
+            Math.hypot(cur.x - p.x, cur.y - p.y) < Math.hypot(best.x - p.x, best.y - p.y) ? cur : best
+          );
+          aimAngle = Math.atan2(nearestEnemy.y - p.y, nearestEnemy.x - p.x);
+        }
+      } else {
+        const aimWorldX = state.camera.x + state.mouseScreen.x;
+        const aimWorldY = state.camera.y + state.mouseScreen.y;
+        aimAngle = Math.atan2(aimWorldY - p.y, aimWorldX - p.x);
+      }
+
+      p.facingAngle = aimAngle;
+      if (Math.cos(aimAngle) !== 0) p.facingX = Math.cos(aimAngle) >= 0 ? 1 : -1;
+      p.castTimer = 0.2;
+      state.castRings.push({ x: p.x, y: p.y + 8, r: 10, maxR: 38, life: 0.22, maxLife: 0.22 });
+
+      spawnProjectilesFromPlayer(aimAngle, nearestEnemy, false);
+
+      // Word Echo Augment
+      const echoLv = getAugLv("echo");
+      if (echoLv > 0 && Math.random() < echoLv * 0.28 && aliveEnemies.length > 0) {
+        const randTarget = aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)];
+        const echoAng = Math.atan2(randTarget.y - p.y, randTarget.x - p.x);
+        state.projectiles.push({
+          x: p.x,
+          y: p.y,
+          vx: Math.cos(echoAng) * 820,
+          vy: Math.sin(echoAng) * 820,
+          dmg: Math.round(p.dmg * 0.85),
+          pierceLeft: 0,
+          hitSet: new Set(),
+          homingTarget: randTarget,
+          life: 1.4,
+          isEcho: true
+        });
+      }
+
+      // Immediately regenerate word
+      const usedSet = new Set(state.deck);
+      state.deck[slotIdx] = pickNextWord(usedSet);
+      renderWordDeck(slotIdx);
+
+      playSfx(520, 0.07, "square", 0.045, 880);
+      return true;
+    }
+
+    function addFloatText(x, y, text, color = "#ffd43b") {
+      state.floatTexts.push({ x, y, text, color, life: 0.75, maxLife: 0.75 });
+    }
+
+    function spawnPixelBurst(x, y, color, count = 8) {
+      for (let i = 0; i < count; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const spd = 65 + Math.random() * 145;
+        state.particles.push({
+          x,
+          y,
+          vx: Math.cos(ang) * spd,
+          vy: Math.sin(ang) * spd,
+          size: 4,
+          color,
+          life: 0.26 + Math.random() * 0.18
+        });
+      }
+    }
+
+    function damageEnemy(enemy, baseDmg, allowProcs = true, knockAngle = null) {
+      if (!enemy || enemy.dead || enemy.hp <= 0) return;
+      const p = state.player;
+      const isCrit = Math.random() < p.critChance;
+      const finalDmg = isCrit ? baseDmg * 2 : baseDmg;
+
+      enemy.hp -= finalDmg;
+      enemy.hitFlash = 0.12;
+
+      // Crisp knockback when hit by projectile
+      if (knockAngle !== null) {
+        const kb = enemy.kind === "golem" ? 7 : 18;
+        enemy.x = clamp(enemy.x + Math.cos(knockAngle) * kb, WORLD_MARGIN, WORLD_W - WORLD_MARGIN);
+        enemy.y = clamp(enemy.y + Math.sin(knockAngle) * kb, WORLD_MARGIN, WORLD_H - WORLD_MARGIN);
+      }
+
+      spawnPixelBurst(enemy.x, enemy.y, isCrit ? "#ffd43b" : "#74c0fc", isCrit ? 10 : 6);
+      addFloatText(
+        enemy.x + (Math.random() - 0.5) * 14,
+        enemy.y - enemy.radius - 8,
+        isCrit ? `${finalDmg}!` : `${finalDmg}`,
+        isCrit ? "#ffd43b" : "#ffffff"
+      );
+
+      if (allowProcs) {
+        // Explosive Impact Augment
+        const expLv = getAugLv("explode");
+        if (expLv > 0) {
+          const radius = 62 + expLv * 14;
+          const splashDmg = Math.round(baseDmg * (0.45 + expLv * 0.15));
+          state.explosions.push({ x: enemy.x, y: enemy.y, r: radius, life: 0.22, maxLife: 0.22 });
+          state.camera.shake = Math.max(state.camera.shake, 4.5);
+          state.enemies.forEach((other) => {
+            if (other !== enemy && !other.dead && Math.hypot(other.x - enemy.x, other.y - enemy.y) <= radius) {
+              damageEnemy(other, splashDmg, false);
+            }
+          });
+        }
+
+        // Chain Lightning Augment
+        const chainLv = getAugLv("chain");
+        if (chainLv > 0) {
+          let current = enemy;
+          const visited = new Set([enemy]);
+          const chainDmg = Math.round(baseDmg * 0.65);
+          for (let bounce = 0; bounce < chainLv; bounce++) {
+            let nextTarget = null;
+            let bestDist = 185;
+            state.enemies.forEach((cand) => {
+              if (!visited.has(cand) && !cand.dead && cand.hp > 0) {
+                const d = Math.hypot(cand.x - current.x, cand.y - current.y);
+                if (d < bestDist) {
+                  bestDist = d;
+                  nextTarget = cand;
+                }
+              }
+            });
+            if (!nextTarget) break;
+            visited.add(nextTarget);
+            state.lightnings.push({ x1: current.x, y1: current.y, x2: nextTarget.x, y2: nextTarget.y, life: 0.18 });
+            damageEnemy(nextTarget, chainDmg, false);
+            current = nextTarget;
+          }
+        }
+      }
+
+      // Mark dead safely (removed in cleanup pass to avoid mid-loop splice corruption)
+      if (enemy.hp <= 0 && !enemy.dead) {
+        enemy.dead = true;
+        p.kills += 1;
+        p.score += enemy.kind === "golem" ? 300 : enemy.kind === "skeleton" ? 160 : 100;
+        spawnPixelBurst(enemy.x, enemy.y, "#ff6b6b", 12);
+        playSfx(280, 0.1, "square", 0.045, 560);
+
+        state.gems.push({
+          x: enemy.x,
+          y: enemy.y,
+          val: enemy.kind === "golem" ? 42 : enemy.kind === "skeleton" ? 24 : 16,
+          bob: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    function damagePlayer(dmg, attacker) {
+      const p = state.player;
+      if (p.invulnTimer > 0 || state.gameOver) return;
+
+      p.hp = Math.max(0, p.hp - dmg);
+      p.invulnTimer = 0.45; // Proper invulnerability frames prevent instant frame-by-frame melt
+      p.hurtFlash = 0.22;
+      state.camera.shake = Math.max(state.camera.shake, 7.5);
+
+      addFloatText(p.x, p.y - 30, `-${dmg}`, "#ff4d4d");
+      spawnPixelBurst(p.x, p.y, "#ff4d4d", 8);
+      playSfx(145, 0.14, "sawtooth", 0.06, 65);
+
+      // Push attacker back slightly after landing a hit so it doesn't glue onto player
+      if (attacker) {
+        const pushAng = Math.atan2(attacker.y - p.y, attacker.x - p.x);
+        attacker.x = clamp(attacker.x + Math.cos(pushAng) * 24, WORLD_MARGIN, WORLD_W - WORLD_MARGIN);
+        attacker.y = clamp(attacker.y + Math.sin(pushAng) * 24, WORLD_MARGIN, WORLD_H - WORLD_MARGIN);
+      }
+
+      if (p.hp <= 0) {
+        state.gameOver = true;
+        updateHud();
+        finalStats.innerHTML = `
+          생존 시간: <strong>${formatTime(state.elapsed)}</strong><br/>
+          도달 레벨: <strong>LV. ${p.lv}</strong><br/>
+          처치 수: <strong>${p.kills}마리</strong> · 최종 점수: <strong>${p.score}점</strong>
+        `;
+        gameOverModal.classList.remove("hidden");
+      }
+    }
+
+    function spawnEnemy() {
+      const p = state.player;
+      const ang = Math.random() * Math.PI * 2;
+      const dist = Math.max(viewW, viewH) * 0.56 + 60 + Math.random() * 140;
+      const x = clamp(p.x + Math.cos(ang) * dist, WORLD_MARGIN, WORLD_W - WORLD_MARGIN);
+      const y = clamp(p.y + Math.sin(ang) * dist, WORLD_MARGIN, WORLD_H - WORLD_MARGIN);
+
+      const wave = 1 + Math.floor(state.elapsed / 25) * 0.28;
+      const r = Math.random();
+      let kind = "slime";
+      let hp = Math.round(28 * wave);
+      let speed = 78 + Math.min(52, state.elapsed * 0.7);
+      let radius = 18;
+      let dmg = 8;
+      let attackInterval = 1.15;
+
+      if (state.elapsed > 20 && r > 0.83) {
+        kind = "golem";
+        hp = Math.round(85 * wave);
+        speed = 48 + Math.min(26, state.elapsed * 0.35);
+        radius = 27;
+        dmg = 18;
+        attackInterval = 1.55;
+      } else if (state.elapsed > 11 && r > 0.58) {
+        kind = "skeleton";
+        hp = Math.round(44 * wave);
+        speed = 88 + Math.min(50, state.elapsed * 0.65);
+        radius = 20;
+        dmg = 12;
+        attackInterval = 1.05;
+      } else if (state.elapsed > 5 && r > 0.35) {
+        kind = "goblin";
+        hp = Math.round(34 * wave);
+        speed = 98 + Math.min(58, state.elapsed * 0.78);
+        radius = 19;
+        dmg = 10;
+        attackInterval = 0.95;
+      }
+
+      state.enemies.push({
+        x,
+        y,
+        kind,
+        hp,
+        maxHp: hp,
+        speed,
+        radius,
+        dmg,
+        attackInterval,
+        attackCd: 0.25, // slight initial delay on contact
+        attackAnim: 0,
+        facingX: x < p.x ? 1 : -1,
+        hitFlash: 0,
+        animPhase: Math.random() * 6,
+        bladeCooldown: 0,
+        frostTick: 0,
+        dead: false
+      });
+    }
+
+    // =========================================================
+    // MAIN UPDATE LOOP
+    // =========================================================
+    function update(dt) {
+      if (!running || !state || state.gameOver || paused) return;
+      state.elapsed += dt;
+
+      const p = state.player;
+      p.hurtFlash = Math.max(0, p.hurtFlash - dt);
+      p.invulnTimer = Math.max(0, p.invulnTimer - dt);
+      p.castTimer = Math.max(0, p.castTimer - dt);
+      state.camera.shake = Math.max(0, state.camera.shake - dt * 26);
+
+      if (p.regen > 0 && p.hp < p.maxHp) {
+        p.hp = Math.min(p.maxHp, p.hp + p.regen * dt);
+      }
+
+      // Smooth constant-speed straight-line movement toward target point
+      if (isPointerDown) {
+        p.targetX = clamp(state.camera.x + state.mouseScreen.x, WORLD_MARGIN, WORLD_W - WORLD_MARGIN);
+        p.targetY = clamp(state.camera.y + state.mouseScreen.y, WORLD_MARGIN, WORLD_H - WORLD_MARGIN);
+      }
+
+      const dx = p.targetX - p.x;
+      const dy = p.targetY - p.y;
+      const dist = Math.hypot(dx, dy);
+      if (dist > 2) {
+        const step = p.speed * dt;
+        p.walkTimer += dt * 10;
+        if (Math.abs(dx) > 1) p.facingX = dx >= 0 ? 1 : -1;
+        if (state.enemies.length === 0) {
+          p.facingAngle = Math.atan2(dy, dx);
+        }
+        if (step >= dist) {
+          p.x = p.targetX;
+          p.y = p.targetY;
+        } else {
+          p.x += (dx / dist) * step;
+          p.y += (dy / dist) * step;
+        }
+        p.x = clamp(p.x, WORLD_MARGIN, WORLD_W - WORLD_MARGIN);
+        p.y = clamp(p.y, WORLD_MARGIN, WORLD_H - WORLD_MARGIN);
+      } else {
+        p.walkTimer = 0;
+      }
+
+      updateCamera();
+
+      // Orbiting Blades Augment
+      const bladeCount = getAugLv("blades");
+      const bladeOrbitR = 72;
+      const bladeAngleBase = state.elapsed * 3.4;
+
+      // Frost Aura Augment
+      const frostLv = getAugLv("frost");
+      const frostRadius = frostLv > 0 ? 120 + frostLv * 22 : 0;
+
+      // Spawn Enemies (cap at 90 active for smooth FPS)
+      state.spawnTimer -= dt;
+      const spawnInterval = Math.max(0.42, 1.4 - state.elapsed * 0.014);
+      if (state.spawnTimer <= 0 && state.enemies.length < 90) {
+        spawnEnemy();
+        state.spawnTimer = spawnInterval;
+      }
+
+      // Enemy-to-enemy soft separation so horde fans out cleanly instead of stacking
+      const enemies = state.enemies;
+      for (let i = 0; i < enemies.length; i++) {
+        const a = enemies[i];
+        if (a.dead) continue;
+        for (let j = i + 1; j < enemies.length; j++) {
+          const b = enemies[j];
+          if (b.dead) continue;
+          const sx = a.x - b.x;
+          const sy = a.y - b.y;
+          const minDist = (a.radius + b.radius) * 0.85;
+          const dSq = sx * sx + sy * sy;
+          if (dSq > 0.01 && dSq < minDist * minDist) {
+            const d = Math.sqrt(dSq);
+            const push = (minDist - d) * 0.45;
+            const nx = sx / d;
+            const ny = sy / d;
+            a.x = clamp(a.x + nx * push, WORLD_MARGIN, WORLD_W - WORLD_MARGIN);
+            a.y = clamp(a.y + ny * push, WORLD_MARGIN, WORLD_H - WORLD_MARGIN);
+            b.x = clamp(b.x - nx * push, WORLD_MARGIN, WORLD_W - WORLD_MARGIN);
+            b.y = clamp(b.y - ny * push, WORLD_MARGIN, WORLD_H - WORLD_MARGIN);
+          }
+        }
+      }
+
+      // Update Enemies
+      for (let i = 0; i < enemies.length; i++) {
+        const e = enemies[i];
+        if (e.dead) continue;
+
+        e.hitFlash = Math.max(0, e.hitFlash - dt);
+        e.bladeCooldown = Math.max(0, e.bladeCooldown - dt);
+        e.attackCd = Math.max(0, e.attackCd - dt);
+        e.attackAnim = Math.max(0, e.attackAnim - dt);
+        e.animPhase += dt * (e.kind === "golem" ? 4.2 : 6.2);
+
+        const toPx = p.x - e.x;
+        const toPy = p.y - e.y;
+        const distToPlayer = Math.hypot(toPx, toPy);
+        if (Math.abs(toPx) > 2) e.facingX = toPx >= 0 ? 1 : -1;
+
+        let moveSpeed = e.speed;
+
+        // Frost Aura slow + periodic tick
+        if (frostLv > 0 && distToPlayer <= frostRadius) {
+          moveSpeed *= Math.max(0.4, 0.72 - frostLv * 0.07);
+          e.frostTick += dt;
+          if (e.frostTick >= 0.65) {
+            e.frostTick = 0;
+            damageEnemy(e, 6 + frostLv * 4, false);
+            if (e.dead) continue;
+          }
+        }
+
+        // Orbiting Blades collision
+        if (bladeCount > 0 && e.bladeCooldown === 0) {
+          for (let b = 0; b < bladeCount; b++) {
+            const ba = bladeAngleBase + (Math.PI * 2 * b) / bladeCount;
+            const bx = p.x + Math.cos(ba) * bladeOrbitR;
+            const by = p.y + Math.sin(ba) * bladeOrbitR;
+            if (Math.hypot(bx - e.x, by - e.y) < e.radius + 15) {
+              e.bladeCooldown = 0.36;
+              damageEnemy(e, Math.round(p.dmg * 0.75), false, Math.atan2(e.y - p.y, e.x - p.x));
+              break;
+            }
+          }
+          if (e.dead) continue;
+        }
+
+        // Move toward player, stopping at melee edge instead of overlapping player center
+        const meleeReach = PLAYER_RADIUS + e.radius;
+        if (distToPlayer > meleeReach - 4) {
+          const ang = Math.atan2(toPy, toPx);
+          e.x = clamp(e.x + Math.cos(ang) * moveSpeed * dt, WORLD_MARGIN, WORLD_W - WORLD_MARGIN);
+          e.y = clamp(e.y + Math.sin(ang) * moveSpeed * dt, WORLD_MARGIN, WORLD_H - WORLD_MARGIN);
+        }
+
+        // Proper discrete melee attack with attack speed cooldown
+        if (distToPlayer <= meleeReach + 4 && e.attackCd <= 0) {
+          e.attackCd = e.attackInterval;
+          e.attackAnim = 0.22;
+          damagePlayer(e.dmg, e);
+          if (state.gameOver) break;
+        }
+      }
+
+      // Update Projectiles
+      for (let i = state.projectiles.length - 1; i >= 0; i--) {
+        const pr = state.projectiles[i];
+        pr.life -= dt;
+        if (pr.life <= 0) {
+          state.projectiles.splice(i, 1);
+          continue;
+        }
+
+        // Smooth homing turn toward living target
+        if (pr.homingTarget && !pr.homingTarget.dead && pr.homingTarget.hp > 0) {
+          const curAng = Math.atan2(pr.vy, pr.vx);
+          const desired = Math.atan2(pr.homingTarget.y - pr.y, pr.homingTarget.x - pr.x);
+          let diff = desired - curAng;
+          while (diff > Math.PI) diff -= Math.PI * 2;
+          while (diff < -Math.PI) diff += Math.PI * 2;
+          const maxTurn = 9 * dt;
+          const nextAng = curAng + clamp(diff, -maxTurn, maxTurn);
+          const spd = Math.hypot(pr.vx, pr.vy);
+          pr.vx = Math.cos(nextAng) * spd;
+          pr.vy = Math.sin(nextAng) * spd;
+        }
+
+        pr.x += pr.vx * dt;
+        pr.y += pr.vy * dt;
+
+        // Subtle pixel spark trail
+        if (Math.random() < 0.45) {
+          state.particles.push({
+            x: pr.x + (Math.random() - 0.5) * 4,
+            y: pr.y + (Math.random() - 0.5) * 4,
+            vx: -pr.vx * 0.05,
+            vy: -pr.vy * 0.05,
+            size: 3,
+            color: pr.isEcho ? "#e599f7" : "#74c0fc",
+            life: 0.14
+          });
+        }
+
+        if (pr.x < 24 || pr.x > WORLD_W - 24 || pr.y < 24 || pr.y > WORLD_H - 24) {
+          state.projectiles.splice(i, 1);
+          continue;
+        }
+
+        const hitAngle = Math.atan2(pr.vy, pr.vx);
+        for (let j = 0; j < enemies.length; j++) {
+          const e = enemies[j];
+          if (e.dead || pr.hitSet.has(e)) continue;
+          if (Math.hypot(pr.x - e.x, pr.y - e.y) <= e.radius + 11) {
+            pr.hitSet.add(e);
+            damageEnemy(e, pr.dmg, true, hitAngle);
+            if (pr.pierceLeft > 0) {
+              pr.pierceLeft -= 1;
+            } else {
+              state.projectiles.splice(i, 1);
+              break;
+            }
+          }
+        }
+      }
+
+      // Single clean pass to purge dead enemies
+      state.enemies = state.enemies.filter((e) => !e.dead);
+
+      // Update XP Gems
+      for (let i = state.gems.length - 1; i >= 0; i--) {
+        const g = state.gems[i];
+        g.bob += dt * 5;
+        const gd = Math.hypot(p.x - g.x, p.y - g.y);
+        if (gd < p.magnet) {
+          const pull = 390 * (1 - gd / p.magnet) + 160;
+          g.x += ((p.x - g.x) / Math.max(1, gd)) * pull * dt;
+          g.y += ((p.y - g.y) / Math.max(1, gd)) * pull * dt;
+        }
+        if (gd < PLAYER_RADIUS + 14) {
+          p.exp += g.val;
+          p.score += 15;
+          state.gems.splice(i, 1);
+          playSfx(760, 0.05, "square", 0.035, 1080);
+          checkLevelUp();
+        }
+      }
+
+      // Visual effect timers
+      for (let i = state.particles.length - 1; i >= 0; i--) {
+        const pt = state.particles[i];
+        pt.x += pt.vx * dt;
+        pt.y += pt.vy * dt;
+        pt.life -= dt;
+        if (pt.life <= 0) state.particles.splice(i, 1);
+      }
+      for (let i = state.lightnings.length - 1; i >= 0; i--) {
+        state.lightnings[i].life -= dt;
+        if (state.lightnings[i].life <= 0) state.lightnings.splice(i, 1);
+      }
+      for (let i = state.explosions.length - 1; i >= 0; i--) {
+        state.explosions[i].life -= dt;
+        if (state.explosions[i].life <= 0) state.explosions.splice(i, 1);
+      }
+      for (let i = state.castRings.length - 1; i >= 0; i--) {
+        const cr = state.castRings[i];
+        cr.life -= dt;
+        cr.r = cr.maxR * (1 - cr.life / cr.maxLife);
+        if (cr.life <= 0) state.castRings.splice(i, 1);
+      }
+      for (let i = state.floatTexts.length - 1; i >= 0; i--) {
+        const ft = state.floatTexts[i];
+        ft.y -= 30 * dt;
+        ft.life -= dt;
+        if (ft.life <= 0) state.floatTexts.splice(i, 1);
+      }
+
+      updateHud();
+    }
+
+    function updateHud() {
+      if (!state) return;
+      const p = state.player;
+      hudTime.textContent = formatTime(state.elapsed);
+      hudHpText.textContent = `${Math.max(0, Math.ceil(p.hp))} / ${p.maxHp}`;
+      hudHpBar.style.width = `${clamp((p.hp / p.maxHp) * 100, 0, 100)}%`;
+      hudLvText.textContent = `LV. ${p.lv}`;
+      hudExpText.textContent = `${p.exp} / ${p.nextExp} EXP`;
+      hudExpBar.style.width = `${clamp((p.exp / p.nextExp) * 100, 0, 100)}%`;
+      hudKills.textContent = `처치 ${p.kills}`;
+      hudScore.textContent = `점수 ${p.score}`;
+      hudDmg.textContent = `공격력 ${p.dmg}`;
+    }
+
+    // =========================================================
+    // PIXEL ART RENDERER
+    // =========================================================
+    function draw() {
+      ctx.imageSmoothingEnabled = false;
+      ctx.fillStyle = "#24471d";
+      ctx.fillRect(0, 0, viewW, viewH);
+
+      if (!state) {
+        // Nice ambient grass backdrop on Main Menu before game starts
+        const patSize = 256;
+        for (let gx = 0; gx < viewW + patSize; gx += patSize) {
+          for (let gy = 0; gy < viewH + patSize; gy += patSize) {
+            ctx.drawImage(grassPatternCanvas, gx, gy);
+          }
+        }
+        return;
+      }
+
+      const shakeX = state.camera.shake > 0 ? Math.round((Math.random() - 0.5) * 2 * state.camera.shake) : 0;
+      const shakeY = state.camera.shake > 0 ? Math.round((Math.random() - 0.5) * 2 * state.camera.shake) : 0;
+
+      ctx.save();
+      ctx.translate(-Math.floor(state.camera.x) + shakeX, -Math.floor(state.camera.y) + shakeY);
+
+      // 1. Tile Seamless Pixel Grass across visible viewport
+      const patSize = 256;
+      const startX = Math.floor(state.camera.x / patSize) * patSize;
+      const endX = Math.min(WORLD_W, state.camera.x + viewW + patSize);
+      const startY = Math.floor(state.camera.y / patSize) * patSize;
+      const endY = Math.min(WORLD_H, state.camera.y + viewH + patSize);
+
+      for (let gx = startX; gx < endX; gx += patSize) {
+        for (let gy = startY; gy < endY; gy += patSize) {
+          if (gx >= 0 && gy >= 0 && gx < WORLD_W && gy < WORLD_H) {
+            ctx.drawImage(grassPatternCanvas, gx, gy);
+          }
+        }
+      }
+
+      // 2. Meadow Landmarks (Dirt Patches, Wildflower Beds, Pixel Rocks)
+      MEADOW_DECOR.forEach((d) => {
+        if (
+          d.x + d.w < state.camera.x || d.x > state.camera.x + viewW ||
+          d.y + d.h < state.camera.y || d.y > state.camera.y + viewH
+        ) return;
+
+        if (d.type === "dirt") {
+          ctx.fillStyle = "#9c7a4c";
+          ctx.fillRect(d.x, d.y, d.w, d.h);
+          ctx.fillStyle = "#85653c";
+          ctx.fillRect(d.x + 5, d.y + 5, d.w - 10, d.h - 10);
+          ctx.fillStyle = "#705330";
+          ctx.fillRect(d.x + 12, d.y + 10, 6, 4);
+        } else if (d.type === "flowers") {
+          ctx.fillStyle = "#3f8232";
+          ctx.fillRect(d.x, d.y, d.w, d.h);
+          ctx.fillStyle = "#ffd43b";
+          ctx.fillRect(d.x + 8, d.y + 8, 5, 5);
+          ctx.fillStyle = "#ff8787";
+          ctx.fillRect(d.x + d.w - 15, d.y + 11, 5, 5);
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(d.x + 18, d.y + d.h - 13, 5, 5);
+          ctx.fillStyle = "#74c0fc";
+          ctx.fillRect(d.x + d.w - 22, d.y + d.h - 11, 4, 4);
+        } else {
+          // Small meadow stone cluster
+          ctx.fillStyle = "#1c2419";
+          ctx.fillRect(d.x, d.y, 18, 12);
+          ctx.fillStyle = "#868e96";
+          ctx.fillRect(d.x + 2, d.y + 2, 14, 8);
+          ctx.fillStyle = "#ced4da";
+          ctx.fillRect(d.x + 4, d.y + 2, 6, 3);
+        }
+      });
+
+      // 3. Pixel Forest Perimeter Border (24x22 Oak Trees)
+      const treeW = SPRITES.tree.width;
+      const treeH = SPRITES.tree.height;
+      const stepT = 68;
+      for (let tx = 0; tx <= WORLD_W; tx += stepT) {
+        if (tx + treeW >= state.camera.x && tx - treeW <= state.camera.x + viewW) {
+          if (state.camera.y < 140) ctx.drawImage(SPRITES.tree, tx - treeW / 2, -14);
+          if (state.camera.y + viewH > WORLD_H - 140) ctx.drawImage(SPRITES.tree, tx - treeW / 2, WORLD_H - treeH + 14);
+        }
+      }
+      for (let ty = 0; ty <= WORLD_H; ty += stepT) {
+        if (ty + treeH >= state.camera.y && ty - treeH <= state.camera.y + viewH) {
+          if (state.camera.x < 140) ctx.drawImage(SPRITES.tree, -18, ty - treeH / 2);
+          if (state.camera.x + viewW > WORLD_W - 140) ctx.drawImage(SPRITES.tree, WORLD_W - treeW + 18, ty - treeH / 2);
+        }
+      }
+
+      const p = state.player;
+
+      // 4. Shortest-path Destination Pixel Marker
+      const distTarget = Math.hypot(p.targetX - p.x, p.targetY - p.y);
+      if (distTarget > 8) {
+        ctx.fillStyle = "rgba(255, 212, 59, 0.45)";
+        const steps = Math.floor(distTarget / 24);
+        for (let s = 1; s < steps; s++) {
+          const px = Math.floor(p.x + ((p.targetX - p.x) * s) / steps);
+          const py = Math.floor(p.y + ((p.targetY - p.y) * s) / steps);
+          ctx.fillRect(px - 2, py - 2, 4, 4);
+        }
+        ctx.strokeStyle = "#ffd43b";
+        ctx.lineWidth = 3;
+        ctx.strokeRect(Math.floor(p.targetX - 10), Math.floor(p.targetY - 10), 20, 20);
+      }
+
+      // 5. Frost Aura Ring & Spell Cast Rings
+      const frostLv = getAugLv("frost");
+      if (frostLv > 0) {
+        const fr = 120 + frostLv * 22;
+        ctx.fillStyle = "rgba(116, 192, 252, 0.12)";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, fr, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(116, 192, 252, 0.48)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      state.castRings.forEach((cr) => {
+        ctx.strokeStyle = `rgba(92, 200, 255, ${(cr.life / cr.maxLife) * 0.7})`;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(cr.x, cr.y, cr.r, 0, Math.PI * 2);
+        ctx.stroke();
+      });
+
+      // 6. Pixel XP Gems
+      state.gems.forEach((g) => {
+        const gy = Math.floor(g.y + Math.sin(g.bob) * 3);
+        const gx = Math.floor(g.x);
+        ctx.fillStyle = "#141812";
+        ctx.fillRect(gx - 7, gy - 7, 14, 14);
+        ctx.fillStyle = g.val >= 40 ? "#ffd43b" : g.val >= 24 ? "#69db7c" : "#3bc9db";
+        ctx.fillRect(gx - 5, gy - 5, 10, 10);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(gx - 3, gy - 3, 4, 4);
+      });
+
+      // 7. Pixel Enemies (2-frame animated + facing player + attack lunge + crisp hit flash)
+      state.enemies.forEach((e) => {
+        const lunge = e.attackAnim > 0 ? Math.sin((e.attackAnim / 0.22) * Math.PI) * 9 : 0;
+        const lungeAng = Math.atan2(p.y - e.y, p.x - e.x);
+        const ex = Math.floor(e.x + Math.cos(lungeAng) * lunge);
+        const ey = Math.floor(e.y + Math.sin(lungeAng) * lunge);
+
+        // Ground shadow
+        ctx.fillStyle = "rgba(14, 24, 12, 0.45)";
+        ctx.fillRect(ex - e.radius + 2, ey + e.radius - 2, (e.radius - 2) * 2, 7);
+
+        const dir = e.facingX >= 0 ? "R" : "L";
+        const frame = Math.floor(e.animPhase) % 2 === 0 ? "1" : "2";
+        const key = e.kind + dir + frame;
+        const spr = e.hitFlash > 0 && SPRITES[key + "Hit"] ? SPRITES[key + "Hit"] : SPRITES[key];
+
+        ctx.drawImage(spr, Math.floor(ex - spr.width / 2), Math.floor(ey - spr.height / 2));
+
+        // Pixel HP Bar when damaged
+        if (e.hp < e.maxHp) {
+          const bw = Math.max(28, e.radius * 2);
+          ctx.fillStyle = "#141812";
+          ctx.fillRect(ex - bw / 2 - 1, ey - spr.height / 2 - 10, bw + 2, 6);
+          ctx.fillStyle = "#ff4d4d";
+          ctx.fillRect(ex - bw / 2, ey - spr.height / 2 - 9, Math.max(0, Math.floor(bw * (e.hp / e.maxHp))), 4);
+        }
+      });
+
+      // 8. Orbiting Pixel Blades
+      const bladeCount = getAugLv("blades");
+      if (bladeCount > 0) {
+        const bladeOrbitR = 72;
+        const baseA = state.elapsed * 3.4;
+        for (let b = 0; b < bladeCount; b++) {
+          const ba = baseA + (Math.PI * 2 * b) / bladeCount;
+          const bx = Math.floor(p.x + Math.cos(ba) * bladeOrbitR);
+          const by = Math.floor(p.y + Math.sin(ba) * bladeOrbitR);
+          ctx.save();
+          ctx.translate(bx, by);
+          ctx.rotate(ba + Math.PI / 4);
+          ctx.fillStyle = "#141812";
+          ctx.fillRect(-5, -16, 10, 32);
+          ctx.fillStyle = "#74c0fc";
+          ctx.fillRect(-3, -14, 6, 22);
+          ctx.fillStyle = "#e3fafc";
+          ctx.fillRect(-1, -12, 2, 16);
+          ctx.fillStyle = "#ffd43b";
+          ctx.fillRect(-7, 6, 14, 4);
+          ctx.restore();
+        }
+      }
+
+      // 9. Directional Glowing Pixel Projectiles
+      state.projectiles.forEach((pr) => {
+        const ang = Math.atan2(pr.vy, pr.vx);
+        ctx.save();
+        ctx.translate(Math.floor(pr.x), Math.floor(pr.y));
+        ctx.rotate(ang);
+        ctx.fillStyle = "#141812";
+        ctx.fillRect(-10, -6, 20, 12);
+        ctx.fillStyle = pr.isEcho ? "#da77f2" : "#3bc9db";
+        ctx.fillRect(-8, -4, 16, 8);
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(-2, -2, 8, 4);
+        ctx.restore();
+      });
+
+      // 10. Chain Lightning & Explosions
+      state.lightnings.forEach((ln) => {
+        ctx.strokeStyle = "#ffd43b";
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(ln.x1, ln.y1);
+        ctx.lineTo((ln.x1 + ln.x2) / 2 + (Math.random() - 0.5) * 20, (ln.y1 + ln.y2) / 2 + (Math.random() - 0.5) * 20);
+        ctx.lineTo(ln.x2, ln.y2);
+        ctx.stroke();
+      });
+
+      state.explosions.forEach((ex) => {
+        const alpha = ex.life / ex.maxLife;
+        ctx.fillStyle = `rgba(255, 107, 107, ${alpha * 0.42})`;
+        ctx.beginPath();
+        ctx.arc(ex.x, ex.y, ex.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = `rgba(255, 212, 59, ${alpha})`;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+      });
+
+      // 11. Upgraded 18x18 Pixel Player Character (Idle / Walk / Cast + i-frame blink)
+      const px = Math.floor(p.x);
+      const py = Math.floor(p.y);
+      ctx.fillStyle = "rgba(14, 24, 12, 0.5)";
+      ctx.fillRect(px - 16, py + 20, 32, 7);
+
+      const blinkHide = p.invulnTimer > 0 && Math.floor(p.invulnTimer * 18) % 2 === 0;
+      if (!blinkHide) {
+        const dir = p.facingX >= 0 ? "R" : "L";
+        let pSpr;
+        if (p.castTimer > 0) {
+          pSpr = SPRITES["player" + dir + "Cast"];
+        } else if (p.walkTimer > 0) {
+          pSpr = Math.floor(p.walkTimer) % 2 === 0 ? SPRITES["player" + dir + "Walk1"] : SPRITES["player" + dir + "Walk2"];
+        } else {
+          pSpr = SPRITES["player" + dir + "Idle"];
+        }
+        ctx.drawImage(pSpr, Math.floor(px - pSpr.width / 2), Math.floor(py - pSpr.height / 2));
+
+        if (p.hurtFlash > 0) {
+          ctx.fillStyle = "rgba(255, 77, 77, 0.48)";
+          ctx.fillRect(Math.floor(px - pSpr.width / 2), Math.floor(py - pSpr.height / 2), pSpr.width, pSpr.height);
+        }
+      }
+
+      // 12. Pixel Particles & Damage Popups
+      state.particles.forEach((pt) => {
+        ctx.fillStyle = pt.color;
+        ctx.fillRect(Math.floor(pt.x), Math.floor(pt.y), pt.size, pt.size);
+      });
+
+      state.floatTexts.forEach((ft) => {
+        ctx.font = "900 15px Pretendard, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#000000";
+        ctx.fillText(ft.text, Math.floor(ft.x) + 2, Math.floor(ft.y) + 2);
+        ctx.fillStyle = ft.color;
+        ctx.fillText(ft.text, Math.floor(ft.x), Math.floor(ft.y));
+      });
+
+      ctx.restore();
+
+      // Pixel Manual Aim Crosshair
+      if (!autoAim && running && !state.gameOver && !paused) {
+        const mx = Math.floor(state.mouseScreen.x);
+        const my = Math.floor(state.mouseScreen.y);
+        ctx.fillStyle = "#ffd43b";
+        ctx.fillRect(mx - 12, my - 2, 8, 4);
+        ctx.fillRect(mx + 4, my - 2, 8, 4);
+        ctx.fillRect(mx - 2, my - 12, 4, 8);
+        ctx.fillRect(mx - 2, my + 4, 4, 8);
+      }
+
+      drawMinimap();
+    }
+
+    function drawMinimap() {
+      const mw = miniCanvas.width;
+      const mh = miniCanvas.height;
+      miniCtx.fillStyle = "#26471f";
+      miniCtx.fillRect(0, 0, mw, mh);
+
+      // Camera view box
+      miniCtx.strokeStyle = "rgba(255, 255, 255, 0.55)";
+      miniCtx.lineWidth = 1;
+      miniCtx.strokeRect(
+        (state.camera.x / WORLD_W) * mw,
+        (state.camera.y / WORLD_H) * mh,
+        (viewW / WORLD_W) * mw,
+        (viewH / WORLD_H) * mh
+      );
+
+      // Enemies
+      miniCtx.fillStyle = "#ff4d4d";
+      state.enemies.forEach((e) => {
+        miniCtx.fillRect(Math.floor((e.x / WORLD_W) * mw) - 1, Math.floor((e.y / WORLD_H) * mh) - 1, 3, 3);
+      });
+
+      // Player
+      miniCtx.fillStyle = "#ffd43b";
+      miniCtx.fillRect(Math.floor((state.player.x / WORLD_W) * mw) - 2, Math.floor((state.player.y / WORLD_H) * mh) - 2, 5, 5);
+    }
+
+    function formatTime(sec) {
+      const s = Math.floor(sec);
+      return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+    }
+
+    let lastTime = performance.now();
+    function loop(now) {
+      const dt = Math.min(0.05, (now - lastTime) / 1000);
+      lastTime = now;
+      update(dt);
+      draw();
+      requestAnimationFrame(loop);
+    }
+    requestAnimationFrame(loop);
+
+    // =========================================================
+    // INPUT & CONTROLS
+    // =========================================================
+    canvas.addEventListener("pointerdown", (e) => {
+      if (!running || !state || state.gameOver || paused) return;
+      isPointerDown = true;
+      state.mouseScreen.x = e.clientX;
+      state.mouseScreen.y = e.clientY;
+      state.player.targetX = clamp(state.camera.x + e.clientX, WORLD_MARGIN, WORLD_W - WORLD_MARGIN);
+      state.player.targetY = clamp(state.camera.y + e.clientY, WORLD_MARGIN, WORLD_H - WORLD_MARGIN);
+      wordInput.focus();
+    });
+
+    window.addEventListener("pointermove", (e) => {
+      if (!state) return;
+      state.mouseScreen.x = e.clientX;
+      state.mouseScreen.y = e.clientY;
+    });
+
+    window.addEventListener("pointerup", () => {
+      isPointerDown = false;
+    });
+
+    wordInput.addEventListener("compositionstart", () => {
+      if (suppressInput) return;
+      isComposing = true;
+    });
+
+    wordInput.addEventListener("compositionend", () => {
+      isComposing = false;
+      if (suppressInput) return;
+      tryAutoCast();
+    });
+
+    wordInput.addEventListener("input", () => {
+      if (suppressInput) return;
+      playSfx(860, 0.02, "square", 0.018);
+      renderWordDeck(-1);
+      tryAutoCast();
+    });
+
+    function tryAutoCast() {
+      if (!state || !running || state.gameOver || paused) return;
+      const val = wordInput.value.trim();
+      if (!val) return;
+      const normVal = lang === "en" ? val.toLowerCase() : val;
+      const exact = state.deck.some((w) => (lang === "en" ? w.toLowerCase() : w) === normVal);
+      const longerPrefix = state.deck.some((w) => {
+        const nw = lang === "en" ? w.toLowerCase() : w;
+        return nw !== normVal && nw.startsWith(normVal);
+      });
+      if (exact && !longerPrefix) {
+        if (castDeckWord(val, true)) {
+          clearWordInputSafely();
+          renderWordDeck(0);
+        }
+      }
+    }
+
+    wordInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        castDeckWord(wordInput.value, false);
+        clearWordInputSafely();
+        renderWordDeck(-1);
+      }
+    });
+
+    window.addEventListener("keydown", (e) => {
+      if (!running || !state || state.gameOver) return;
+
+      if (e.key === "Escape") {
+        e.preventDefault();
+        togglePause();
+        return;
+      }
+
+      if (paused) return;
+
+      if (state.pendingAugments.length > 0) {
+        const digitMap = { Digit1: 0, Digit2: 1, Digit3: 2, "1": 0, "2": 1, "3": 2 };
+        const idx = digitMap[e.code] !== undefined ? digitMap[e.code] : digitMap[e.key];
+        if (idx !== undefined) {
+          e.preventDefault();
+          chooseAugment(idx);
+          return;
+        }
+      }
+
+      if (document.activeElement !== wordInput && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        wordInput.focus();
+      }
+    });
+
+    function togglePause() {
+      if (!running || !state || state.gameOver) return;
+      paused = !paused;
+      isPointerDown = false;
+      pauseBtn.textContent = paused ? "재개" : "일시정지";
+      pauseBtn.classList.toggle("active", paused);
+      pauseModal.classList.toggle("hidden", !paused);
+      if (!paused) wordInput.focus();
+    }
+
+    function returnToMainMenu() {
+      running = false;
+      paused = false;
+      isPointerDown = false;
+      state = null;
+      hudTop.classList.add("hidden");
+      deckHud.classList.add("hidden");
+      augmentBanner.classList.add("hidden");
+      startModal.classList.add("hidden");
+      pauseModal.classList.add("hidden");
+      gameOverModal.classList.add("hidden");
+      mainMenuModal.classList.remove("hidden");
+    }
+
+    aimBtn.onclick = () => {
+      autoAim = !autoAim;
+      aimBtn.textContent = `조준: ${autoAim ? "자동" : "마우스"}`;
+      aimBtn.classList.toggle("active", autoAim);
+      wordInput.focus();
+    };
+
+    soundBtn.onclick = () => {
+      soundOn = !soundOn;
+      soundBtn.textContent = `소리: ${soundOn ? "ON" : "OFF"}`;
+      soundBtn.classList.toggle("active", soundOn);
+      wordInput.focus();
+    };
+
+    pauseBtn.onclick = togglePause;
+    document.getElementById("resumeBtn").onclick = togglePause;
+    document.getElementById("pauseRestartBtn").onclick = startGame;
+    document.getElementById("pauseMenuBtn").onclick = returnToMainMenu;
+    document.getElementById("gameOverMenuBtn").onclick = returnToMainMenu;
+    document.getElementById("backToMenuBtn").onclick = () => {
+      startModal.classList.add("hidden");
+      mainMenuModal.classList.remove("hidden");
+    };
+
+    document.querySelectorAll(".lang-btn").forEach((btn) => {
+      btn.onclick = () => {
+        lang = btn.dataset.lang;
+        document.querySelectorAll(".lang-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+      };
+    });
+
+    function startGame() {
+      initState();
+      running = true;
+      paused = false;
+      isPointerDown = false;
+      pauseBtn.textContent = "일시정지";
+      pauseBtn.classList.remove("active");
+      mainMenuModal.classList.add("hidden");
+      startModal.classList.add("hidden");
+      pauseModal.classList.add("hidden");
+      gameOverModal.classList.add("hidden");
+      augmentBanner.classList.add("hidden");
+      hudTop.classList.remove("hidden");
+      deckHud.classList.remove("hidden");
+      clearWordInputSafely();
+      wordInput.focus();
+    }
+
+    document.getElementById("startBtn").onclick = startGame;
+    document.getElementById("restartBtn").onclick = startGame;
+    document.getElementById("enterTajaBtn").onclick = () => {
+      mainMenuModal.classList.add("hidden");
+      startModal.classList.remove("hidden");
+    };
+  </script>
+</body>
+</html>
